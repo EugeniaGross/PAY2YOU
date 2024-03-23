@@ -3,7 +3,7 @@ from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.settings import api_settings
 
-from services.models import Service, ServiceCategoryImage, CategoryImage
+from services.models import Service, ServiceCategoryImage, CategoryImage, Tariff, TariffCondition, TariffSpecialCondition
 from users.models import UserService
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -13,13 +13,10 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         refresh = self.get_token(self.user)
 
-        data['accessToken'] = str(refresh.access_token)
-        data['tokenType'] = "bearer"
-        data['expiresIn'] = 28800
-        data['refreshToken'] = str(refresh)
-
-        del data['access']
-        del data['refresh']
+        data['access'] = str(refresh.access_token)
+        data['type'] = "Bearer"
+        data['validity_period'] = 28800
+        data['refresh'] = str(refresh)
 
         if api_settings.UPDATE_LAST_LOGIN:
             update_last_login(None, self.user)
@@ -27,29 +24,44 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         return data
 
 
-class ServiceSerializer(serializers.ModelSerializer):
-    serviceName = serializers.CharField(source='name')
+class ServiceListSerializer(serializers.ModelSerializer):
     logo = serializers.ImageField(source='image_logo', use_url=True)
-    subscriptionStatus = serializers.SerializerMethodField()
+    is_subscribe = serializers.SerializerMethodField()
 
     class Meta:
         model = Service
         fields = (
             'id',
             'logo',
-            'serviceName',
+            'name',
             'cashback',
-            'subscriptionStatus'
+            'is_subscribe'
         )
 
-    def get_subscriptionStatus(self, obj):
-        if UserService.objects.filter(
+    def get_is_subscribe(self, obj):
+        return UserService.objects.filter(
             user=self.context.get('request').user,
             service=obj,
             is_active=1
-        ).exists():
-            return 1
-        return 0
+        ).exists()
+
+
+
+class ServiceRetrieveSerializer(serializers.ModelSerializer):
+    logo = serializers.ImageField(source='image_logo', use_url=True)
+
+    class Meta:
+        model = Service
+        fields = (
+            'id',
+            'name',
+            'full_name',
+            'short_description',
+            'cashback',
+            'logo',
+            'description',
+            'url'
+        )
 
 
 class CategoryImageSerializer(serializers.ModelSerializer):
@@ -84,6 +96,69 @@ class PopularServiceSerialiser(serializers.ModelSerializer):
             'logo',
             'cashback'
         )
+
+
+class TariffListSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model=Tariff
+        fields=(
+            'id',
+            'name',
+            'trial_count',
+            'trial_period',
+            'price',
+            'description'
+        )
+
+
+class TariffRetrieveSerializer(serializers.ModelSerializer):
+    condition = serializers.SerializerMethodField()
+    special_condition = serializers.SerializerMethodField()
+
+    class Meta:
+        model=Tariff
+        fields=(
+            'id',
+            'name',
+            'trial_count',
+            'trial_period',
+            'price',
+            'description',
+            'condition',
+            'special_condition'
+        )
+
+    def get_condition(self, obj):
+        return TarrifConditionSerializer(obj.tariff_conditions.all(), many=True).data
+
+
+    def get_special_condition(self, obj):
+        return TarrifSpecialConditionSerializer(obj.tariff_special_conditions.all(), many=True).data
+
+
+class TarrifConditionSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = TariffCondition
+        fields = (
+            'count',
+            'period',
+            'price'
+        )
+
+
+class TarrifSpecialConditionSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = TariffSpecialCondition
+        fields = (
+            'count',
+            'period',
+            'price'
+        )
+
+
 
 
 #class CreateUserServiceSerializer(serializers.ModelSerializer):

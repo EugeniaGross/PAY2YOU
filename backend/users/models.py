@@ -9,35 +9,18 @@ from services.models import Service, Tariff
 User = get_user_model()
 
 
-class UserPhoneNumber(models.Model):
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        verbose_name='Пользователь',
-        related_name='phone_numbers'
-    )
-    phone_number = models.CharField(
-        'Номер телефона',
-        max_length=16,
-        unique=True,
-        validators=[
-           RegexValidator(
-               regex=r"^\+?1?\d{8,15}$"
-           )
-        ]
-    )
-
-    class Meta:
-        verbose_name = 'номер телефона пользователя'
-        verbose_name_plural = 'Номера телефона пользователя'
-
-
 class UserService(models.Model):
     id = models.UUIDField(
         primary_key=True,
         unique=True,
         default=uuid.uuid4,
         editable=False
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name='Пользователь',
+        related_name='user_services'
     )
     service = models.ForeignKey(
         Service,
@@ -65,11 +48,14 @@ class UserService(models.Model):
         'Автоплатеж',
         default=True
     )
-    phone_number = models.OneToOneField(
-        UserPhoneNumber,
-        on_delete=models.CASCADE,
-        verbose_name='Номер телефона',
-        related_name='user_service'
+    phone_number = models.CharField(
+        'Номер телефона',
+        max_length=16,
+        validators=[
+           RegexValidator(
+               regex=r"^\+?1?\d{8,15}$"
+           )
+        ]
     )
 
     class Meta:

@@ -16,6 +16,13 @@ class CategoryService(models.Model):
         max_length=250
     )
 
+    class Meta:
+        verbose_name = 'категория сервисов'
+        verbose_name_plural = 'Категории сервисов'
+
+    def __str__(self):
+        return self.name
+
 
 class Service(models.Model):
     id = models.UUIDField(
@@ -68,6 +75,9 @@ class Service(models.Model):
         verbose_name='Категория',
         related_name='services'
     )
+    url = models.URLField(
+        'Ссылка на сервис'
+    )
 
     class Meta:
         verbose_name = 'сервис'
@@ -105,7 +115,13 @@ class Tariff(models.Model):
     trial_period = models.CharField(
         'Пробный период (день, месяц, год)',
         max_length=250,
-        choices = CHOICES
+        choices = CHOICES,
+        blank=True
+    )
+    price = models.PositiveSmallIntegerField(
+        'Цена пробного периода',
+        blank=True,
+        null=True
     )
 
     class Meta:
@@ -116,7 +132,7 @@ class Tariff(models.Model):
         return self.name
 
 
-class TarrifCondition(models.Model):
+class TariffCondition(models.Model):
     tarrif = models.ForeignKey(
         Tariff,
         on_delete=models.CASCADE,

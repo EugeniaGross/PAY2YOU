@@ -1,7 +1,7 @@
 from django.urls import include, path
 from rest_framework.routers import SimpleRouter
 
-from .views import CustomTokenObtainPairView, SevicesViewSet, CategoryImageViewSet, ServiceCategoryImageViewSet, PopularServiceViewSet
+from .views import CustomTokenObtainPairView, SevicesViewSet, CategoryImageViewSet, ServiceCategoryImageViewSet, PopularServiceViewSet, TariffViewSet
 
 router = SimpleRouter()
 
@@ -11,19 +11,24 @@ router.register(
     basename='services'
 )
 router.register(
-    r'services/(?P<service_id>[a-z\d-]+)/posterCategories',
+    r'services/(?P<service_id>[a-z\d-]+)/image-categories',
     CategoryImageViewSet,
-    basename='posterCategories'
+    basename='image-categories'
 )
 router.register(
-    r'services/(?P<service_id>[a-z\d-]+)/posterCategories/(?P<category_id>[a-z\d-]+)/gallery',
+    r'services/(?P<service_id>[a-z\d-]+)/image-categories/(?P<category_id>[a-z\d-]+)/images',
     ServiceCategoryImageViewSet,
-    basename='gallery'
+    basename='images'
 )
 router.register(
-    'recommendedServices',
+    'popular-services',
     PopularServiceViewSet,
-    basename='recommendedServices'
+    basename='popular-services'
+)
+router.register(
+    r'services/(?P<service_id>[a-z\d-]+)/tariffs',
+    TariffViewSet,
+    basename='tariffs'
 )
 
 urlpatterns = [

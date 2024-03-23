@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Service, CategoryImage, ServiceCategoryImage
+from .models import Service, CategoryImage, ServiceCategoryImage, CategoryService, Tariff, TariffSpecialCondition, TariffCondition
 
 
 @admin.register(Service)
@@ -15,4 +15,24 @@ class CategoryImageAdmin(admin.ModelAdmin):
 
 @admin.register(ServiceCategoryImage)
 class ServiceCategoryImageAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(CategoryService)
+class CategoryServiceAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(Tariff)
+class TariffAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(TariffSpecialCondition)
+class TariffSpecialCondition(admin.ModelAdmin):
+    pass
+
+
+@admin.register(TariffCondition)
+class TariffCondition(admin.ModelAdmin):
     pass
