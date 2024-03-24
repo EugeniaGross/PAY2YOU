@@ -1,8 +1,8 @@
 from django.urls import include, path
 from rest_framework.routers import SimpleRouter
 
-from .views import CustomTokenObtainPairView, SevicesViewSet, CategoryImageViewSet, ServiceCategoryImageViewSet, PopularServiceViewSet, TariffViewSet
-
+from .services.views import CustomTokenObtainPairView, SevicesViewSet, CategoryImageViewSet, ServiceCategoryImageViewSet, PopularServiceViewSet, TariffViewSet
+from .users.views import UserServiceViewSet
 router = SimpleRouter()
 
 router.register(
@@ -30,6 +30,12 @@ router.register(
     TariffViewSet,
     basename='tariffs'
 )
+router.register(
+    'subscriptions',
+    UserServiceViewSet,
+    basename='subscriptions'
+)
+
 
 urlpatterns = [
     path('login/', CustomTokenObtainPairView.as_view(), name='create_jwt'),

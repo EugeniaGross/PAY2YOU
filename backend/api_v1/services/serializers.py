@@ -3,7 +3,7 @@ from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.settings import api_settings
 
-from services.models import Service, ServiceCategoryImage, CategoryImage, Tariff, TariffCondition, TariffSpecialCondition
+from services.models import Service, ServiceCategoryImage, CategoryImage, Tariff, TariffCondition, TariffSpecialCondition, TariffTrialPeriod
 from users.models import UserService
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -105,9 +105,6 @@ class TariffListSerializer(serializers.ModelSerializer):
         fields=(
             'id',
             'name',
-            'trial_count',
-            'trial_period',
-            'price',
             'description'
         )
 
@@ -115,29 +112,37 @@ class TariffListSerializer(serializers.ModelSerializer):
 class TariffRetrieveSerializer(serializers.ModelSerializer):
     condition = serializers.SerializerMethodField()
     special_condition = serializers.SerializerMethodField()
+    trial_period = serializers.SerializerMethodField()
 
     class Meta:
         model=Tariff
         fields=(
             'id',
             'name',
-            'trial_count',
-            'trial_period',
-            'price',
             'description',
             'condition',
-            'special_condition'
+            'special_condition',
+            'trial_period'
         )
 
     def get_condition(self, obj):
-        return TarrifConditionSerializer(obj.tariff_conditions.all(), many=True).data
+        return TariffConditionSerializer(
+            obj.tariff_condition
+        ).data
 
 
     def get_special_condition(self, obj):
-        return TarrifSpecialConditionSerializer(obj.tariff_special_conditions.all(), many=True).data
+        return TariffSpecialConditionSerializer(
+            obj.tariff_special_condition
+        ).data
+
+    def get_trial_period(self, obj):
+        return TariffTrialPeriodSerializer(
+            obj.tariff_trial_period
+        ).data
 
 
-class TarrifConditionSerializer(serializers.ModelSerializer):
+class TariffConditionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TariffCondition
@@ -148,23 +153,13 @@ class TarrifConditionSerializer(serializers.ModelSerializer):
         )
 
 
-class TarrifSpecialConditionSerializer(serializers.ModelSerializer):
+class TariffSpecialConditionSerializer(TariffConditionSerializer):
 
-    class Meta:
+    class Meta(TariffConditionSerializer.Meta):
         model = TariffSpecialCondition
-        fields = (
-            'count',
-            'period',
-            'price'
-        )
 
 
+class TariffTrialPeriodSerializer(TariffConditionSerializer):
 
-
-#class CreateUserServiceSerializer(serializers.ModelSerializer):
-
-#    model = UserService
-#    fields = (
-#        'subscriptionId',
-#        'phoneNumber'
-#    )
+    class Meta(TariffConditionSerializer.Meta):
+        model = TariffTrialPeriod

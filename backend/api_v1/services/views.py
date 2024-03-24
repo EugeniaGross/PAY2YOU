@@ -4,9 +4,9 @@ from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 from rest_framework import viewsets
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from services.models import Service, Tariff
+from services.models import Service
 
-from .pagination import ServicePagination
+from ..pagination import ServicePagination
 from .serializers import CustomTokenObtainPairSerializer, ServiceListSerializer, CategoryImageSerializer, ServiceCategoryImageSerializer, PopularServiceSerialiser, ServiceRetrieveSerializer, TariffListSerializer, TariffRetrieveSerializer
 
 
@@ -29,7 +29,7 @@ class SevicesViewSet(RetrieveModelMixin, ServiceParentViewSet):
             'cashback'
         ).exclude(
             user_services__user=self.request.user,
-            user_services__is_active=1
+            user_services__is_active=True
         )
 
     def get_serializer_class(self):

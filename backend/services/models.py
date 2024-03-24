@@ -4,9 +4,9 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 CHOICES = (
-        ('D', 'Дней'),
-        ('M', 'Месяцев'),
-        ('Y', 'Год'),
+        ('D', 'Day'),
+        ('M', 'Month'),
+        ('Y', 'Year'),
     )
 
 
@@ -102,26 +102,11 @@ class Tariff(models.Model):
     )
     name = models.CharField(
         'Название трифа',
-        max_length=250
+        max_length=250,
+        blank=True
     )
     description = models.TextField(
         'Описание тарифа'
-    )
-    trial_count = models.PositiveSmallIntegerField(
-        'Количество пробных дней/месяцев/лет',
-        blank=True,
-        null=True
-    )
-    trial_period = models.CharField(
-        'Пробный период (день, месяц, год)',
-        max_length=250,
-        choices = CHOICES,
-        blank=True
-    )
-    price = models.PositiveSmallIntegerField(
-        'Цена пробного периода',
-        blank=True,
-        null=True
     )
 
     class Meta:
@@ -132,12 +117,36 @@ class Tariff(models.Model):
         return self.name
 
 
-class TariffCondition(models.Model):
-    tarrif = models.ForeignKey(
+class TariffTrialPeriod(models.Model):
+    tarrif = models.OneToOneField(
         Tariff,
         on_delete=models.CASCADE,
-        verbose_name='Условия тарифа',
-        related_name='tariff_conditions'
+        verbose_name='Тариф',
+        related_name='tariff_trial_period'
+    )
+    count = models.PositiveSmallIntegerField(
+        'Количество пробных дней/месяцев/лет'
+    )
+    period = models.CharField(
+        'Пробный период (день, месяц, год)',
+        max_length=250,
+        choices = CHOICES,
+    )
+    price = models.PositiveSmallIntegerField(
+        'Цена пробного периода'
+    )
+
+    class Meta:
+        verbose_name = 'пробный период тарифа'
+        verbose_name_plural = 'Пробный период тарифа'
+
+
+class TariffCondition(models.Model):
+    tarrif = models.OneToOneField(
+        Tariff,
+        on_delete=models.CASCADE,
+        verbose_name='Тариф',
+        related_name='tariff_condition'
     )
     count = models.PositiveSmallIntegerField(
         'Количество дней/месяцев/лет',
@@ -157,15 +166,15 @@ class TariffCondition(models.Model):
 
     class Meta:
         verbose_name = 'условие тарифа'
-        verbose_name_plural = 'Условия тарифа'
+        verbose_name_plural = 'Условие тарифа'
 
 
 class TariffSpecialCondition(models.Model):
-    tarrif = models.ForeignKey(
+    tariff = models.OneToOneField(
         Tariff,
         on_delete=models.CASCADE,
-        verbose_name='Условия тарифа',
-        related_name='tariff_special_conditions'
+        verbose_name='Тариф',
+        related_name='tariff_special_condition'
     )
     count = models.PositiveSmallIntegerField(
         'Количество дней/месяцев/лет'
@@ -179,7 +188,7 @@ class TariffSpecialCondition(models.Model):
 
     class Meta:
         verbose_name = 'специальное условие тарифа'
-        verbose_name_plural = 'Специальные условия тарифа'
+        verbose_name_plural = 'Специальное условия тарифа'
 
 
 class CategoryImage(models.Model):
