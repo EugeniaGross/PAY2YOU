@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from rest_framework import serializers
 
@@ -24,6 +24,7 @@ class UserServiceRetrieveSerializer(serializers.ModelSerializer):
             'tariff_name',
             'cashback',
             'payment_date',
+            'end_date',
             'trial_period_end_date',
             'phone_number',
             'price'
@@ -40,17 +41,14 @@ class UserServiceRetrieveSerializer(serializers.ModelSerializer):
         return ''
 
     def get_payment_date(self, obj):
-        return obj.end_date + timedelta(days=1)
+        if obj.end_date >= datetime.now().date():
+            return obj.end_date + timedelta(days=1)
+        return ''
 
 
-class UserServiceListSerializer(serializers.ModelSerializer):
+class UserServiceListSerializer(UserServiceRetrieveSerializer):
     logo = serializers.ImageField(source='service.image_logo')
-    service_name = serializers.CharField(source='service.name')
-    tariff_name = serializers.CharField(source='tariff.name')
-    price = serializers.IntegerField(source='expense')
-    trial_period_end_date = serializers.SerializerMethodField()
     is_active = serializers.SerializerMethodField()
-    payment_date = serializers.SerializerMethodField()
     count = serializers.SerializerMethodField()
     period = serializers.SerializerMethodField()
 
@@ -65,19 +63,11 @@ class UserServiceListSerializer(serializers.ModelSerializer):
             'period',
             'price',
             'payment_date',
+            'end_date',
             'trial_period_end_date',
             'is_active'
         )
 
-    def get_trial_period_end_date(self, obj):
-        if UserTrialPeriod.objects.filter(
-            user=obj.user,
-            service=obj.service
-        ).exists():
-            return obj.service.trial_period.get(
-                user=self.context['request'].user
-            ).end_date
-        return ''
 
     def get_is_active(self, obj):
         if obj.is_active == True and obj.auto_pay == True:
@@ -86,8 +76,6 @@ class UserServiceListSerializer(serializers.ModelSerializer):
             return 0
         return 3
 
-    def get_payment_date(self, obj):
-        return obj.end_date + timedelta(days=1)
 
     def get_count(self, obj):
         return get_tariff_condition(
@@ -100,3 +88,24 @@ class UserServiceListSerializer(serializers.ModelSerializer):
             obj,
             self.context['request'].user
         ).period
+
+
+class UserHistoryPaymentSerializer(serializers.ModelSerializer):
+    logo = serializers.ImageField(source='service.image_logo')
+    service_name = serializers.CharField(source='service.name')
+    tariff_name = serializers.CharField(source='tariff.name')
+    price = serializers.IntegerField(source='expense')
+    date = serializers.DateField(source='start_date')
+
+    class Meta:
+        model = UserService
+        fields = (
+            'id',
+            'logo',
+            'service_name',
+            'tariff_name',
+            'cashback',
+            'price',
+            'status_cashback',
+            'date'
+        )

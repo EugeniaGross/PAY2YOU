@@ -16,7 +16,7 @@ def get_tariff_condition(obj, user):
     elif (
         UserSpecialCondition.objects.filter(
             user=obj.user,
-            service=obj.service
+            tariff=obj.tariff
         ).exists() and obj.tariff.special_conditions.get(
             user=user
         ).end_date > datetime.now().date()
