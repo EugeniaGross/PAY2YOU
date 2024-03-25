@@ -7,7 +7,16 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from services.models import Service
 
 from ..pagination import ServicePagination
-from .serializers import CustomTokenObtainPairSerializer, ServiceListSerializer, CategoryImageSerializer, ServiceCategoryImageSerializer, PopularServiceSerialiser, ServiceRetrieveSerializer, TariffListSerializer, TariffRetrieveSerializer
+from .serializers import (
+    CustomTokenObtainPairSerializer,
+    ServiceListSerializer,
+    CategoryImageSerializer,
+    ServiceCategoryImageSerializer,
+    PopularServiceSerialiser,
+    ServiceRetrieveSerializer,
+    TariffListSerializer,
+    TariffRetrieveSerializer
+)
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
