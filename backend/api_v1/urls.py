@@ -2,7 +2,7 @@ from django.urls import include, path
 from rest_framework.routers import SimpleRouter
 
 from .services.views import CustomTokenObtainPairView, SevicesViewSet, CategoryImageViewSet, ServiceCategoryImageViewSet, PopularServiceViewSet, TariffViewSet
-from .users.views import UserServiceViewSet
+from .users.views import UserServiceViewSet, UserHistoryPaymentViewSet
 router = SimpleRouter()
 
 router.register(
@@ -35,6 +35,12 @@ router.register(
     UserServiceViewSet,
     basename='subscriptions'
 )
+router.register(
+    'payment-history',
+    UserHistoryPaymentViewSet,
+    basename='payment-history'
+)
+
 
 
 urlpatterns = [
