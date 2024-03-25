@@ -40,7 +40,6 @@ router.register(
     UserHistoryPaymentViewSet,
     basename='payment-history'
 )
-
 router.register(
     'analytics/expenses-by-category',
     ExpensesByCategoryViewSet,
