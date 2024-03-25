@@ -1,9 +1,9 @@
 from datetime import datetime, timedelta
-
+from django.db.models import Sum
 from rest_framework import serializers
 
 from users.models import UserService, UserTrialPeriod
-from ..utils import get_tariff_condition
+from ..utils import get_tariff_condition, get_fut_expenses, get_past_expenses
 
 
 class UserServiceRetrieveSerializer(serializers.ModelSerializer):
@@ -68,14 +68,12 @@ class UserServiceListSerializer(UserServiceRetrieveSerializer):
             'is_active'
         )
 
-
     def get_is_active(self, obj):
         if obj.is_active == True and obj.auto_pay == True:
             return 1
         if obj.is_active == False and obj.auto_pay == False:
             return 0
         return 3
-
 
     def get_count(self, obj):
         return get_tariff_condition(
@@ -109,3 +107,29 @@ class UserHistoryPaymentSerializer(serializers.ModelSerializer):
             'status_cashback',
             'date'
         )
+
+
+class ExpensesByCategorySerializer(serializers.ModelSerializer):
+    data = serializers.SerializerMethodField()
+
+    class Meta:
+        model = UserService
+        fields = ('data',)
+
+    def get_data(self, obj):
+        for exp in get_past_expenses(obj, self.context):
+            del exp['service__category__name']
+            yield exp
+
+
+class FutureExpensesSerializer(serializers.ModelSerializer):
+    future_expenses = serializers.SerializerMethodField()
+
+    class Meta:
+        model = UserService
+        fields = (
+            'future_expenses',
+        )
+
+    def get_future_expenses(self, obj):
+        return get_fut_expenses(obj, self.context)

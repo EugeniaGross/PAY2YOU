@@ -11,7 +11,7 @@ from .serializers import CustomTokenObtainPairSerializer, ServiceListSerializer,
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
-    serializer_class=CustomTokenObtainPairSerializer
+    serializer_class = CustomTokenObtainPairSerializer
 
 
 class ServiceParentViewSet(ListModelMixin, viewsets.GenericViewSet):
