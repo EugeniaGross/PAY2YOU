@@ -50,6 +50,8 @@ def get_fut_expenses(obj, context):
         auto_pay=True
     ).aggregate(Sum('expense'))
     return expense['expense__sum']
+
+
 def get_days(tariff_condition):
     if tariff_condition.period == 'M':
         return tariff_condition.count * 30
@@ -57,6 +59,7 @@ def get_days(tariff_condition):
         return tariff_condition.count * 30 * 12
     else:
         return tariff_condition.count
+
 
 def get_full_name_period(count, period):
     if count % 10 == 1 and count % 100 != 11:

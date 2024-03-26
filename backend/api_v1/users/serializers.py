@@ -1,8 +1,4 @@
 from datetime import datetime, timedelta
-from rest_framework import serializers
-
-from users.models import UserService, UserTrialPeriod
-from ..utils import get_tariff_condition, get_fut_expenses, get_past_expenses
 from math import floor
 from re import search
 
@@ -10,7 +6,7 @@ from rest_framework import serializers
 
 from services.models import TariffTrialPeriod, TariffSpecialCondition
 from users.models import UserService, UserTrialPeriod, UserSpecialCondition
-from ..utils import get_tariff_condition, get_days, get_full_name_period
+from ..utils import get_tariff_condition, get_days, get_full_name_period, get_fut_expenses, get_past_expenses
 
 
 class UserServiceRetrieveSerializer(serializers.ModelSerializer):

@@ -6,7 +6,7 @@ from rest_framework_simplejwt.settings import api_settings
 from ..utils import get_full_name_period
 
 from services.models import Service, ServiceCategoryImage, CategoryImage, Tariff, TariffCondition, TariffSpecialCondition, TariffTrialPeriod
-from users.models import UserService
+
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
