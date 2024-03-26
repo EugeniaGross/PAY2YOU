@@ -28,18 +28,7 @@ class ServiceParentViewSet(ListModelMixin, viewsets.GenericViewSet):
 
 
 class SevicesViewSet(RetrieveModelMixin, ServiceParentViewSet):
-    serializer_class = ServiceListSerializer
-
-    def get_queryset(self):
-        return Service.objects.only(
-            'id',
-            'image_logo',
-            'name',
-            'cashback'
-        ).exclude(
-            user_services__user=self.request.user,
-            user_services__is_active=True
-        )
+    queryset = Service.objects.all()
 
     def get_serializer_class(self):
         if self.action == 'list':
