@@ -2,7 +2,7 @@ from django.urls import include, path
 from rest_framework.routers import SimpleRouter
 
 from .services.views import CustomTokenObtainPairView, SevicesViewSet, CategoryImageViewSet, ServiceCategoryImageViewSet, PopularServiceViewSet, TariffViewSet
-from .users.views import UserServiceViewSet, UserHistoryPaymentViewSet, FutureExpensesViewSet, ExpensesByCategoryViewSet
+from .users.views import UserServiceViewSet, UserHistoryPaymentViewSet, FutureExpensesViewSet, ExpensesByCategoryViewSet, CashbackViewSet
 router = SimpleRouter()
 
 router.register(
@@ -49,6 +49,11 @@ router.register(
     'analytics/future-expenses',
     FutureExpensesViewSet,
     basename='future-expenses'
+)
+router.register(
+    'analytics/cashback',
+    CashbackViewSet,
+    basename='cashback'
 )
 
 

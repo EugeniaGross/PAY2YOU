@@ -1,5 +1,8 @@
+from django.db.models import Sum
 from django_filters.rest_framework import DjangoFilterBackend
+from django.http import JsonResponse
 from rest_framework import filters
+from rest_framework import mixins
 from rest_framework import viewsets
 
 from users.models import UserService
@@ -68,3 +71,19 @@ class FutureExpensesViewSet(viewsets.ModelViewSet):
              'end_date': self.request.GET.get('end_date')}
         )
         return context
+
+
+class CashbackViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = UserServiceDateFilter
+
+    def get_queryset(self):
+        return UserService.objects.filter(
+            user=self.request.user
+        )
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(
+            self.get_queryset()
+        ).aggregate(cashback=Sum('cashback'))
+        return JsonResponse(queryset)
