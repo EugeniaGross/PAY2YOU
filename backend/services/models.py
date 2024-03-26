@@ -118,7 +118,7 @@ class Tariff(models.Model):
 
 
 class TariffTrialPeriod(models.Model):
-    tarrif = models.OneToOneField(
+    tariff = models.OneToOneField(
         Tariff,
         on_delete=models.CASCADE,
         verbose_name='Тариф',
@@ -142,7 +142,7 @@ class TariffTrialPeriod(models.Model):
 
 
 class TariffCondition(models.Model):
-    tarrif = models.OneToOneField(
+    tariff = models.OneToOneField(
         Tariff,
         on_delete=models.CASCADE,
         verbose_name='Тариф',
@@ -229,6 +229,10 @@ class ServiceCategoryImage(models.Model):
         on_delete=models.CASCADE,
         verbose_name='Категория',
         related_name='service_category_images'
+    )
+    title = models.CharField(
+        'Заголовок к изображению',
+        max_length=250
     )
     image = models.ImageField(
         'Избражение',

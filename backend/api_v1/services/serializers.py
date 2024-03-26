@@ -3,6 +3,8 @@ from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.settings import api_settings
 
+from ..utils import get_full_name_period
+
 from services.models import Service, ServiceCategoryImage, CategoryImage, Tariff, TariffCondition, TariffSpecialCondition, TariffTrialPeriod
 from users.models import UserService
 
@@ -26,7 +28,6 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 class ServiceListSerializer(serializers.ModelSerializer):
     logo = serializers.ImageField(source='image_logo', use_url=True)
-    is_subscribe = serializers.SerializerMethodField()
 
     class Meta:
         model = Service
@@ -34,17 +35,8 @@ class ServiceListSerializer(serializers.ModelSerializer):
             'id',
             'logo',
             'name',
-            'cashback',
-            'is_subscribe'
+            'cashback'
         )
-
-    def get_is_subscribe(self, obj):
-        return UserService.objects.filter(
-            user=self.context.get('request').user,
-            service=obj,
-            is_active=1
-        ).exists()
-
 
 
 class ServiceRetrieveSerializer(serializers.ModelSerializer):
@@ -80,6 +72,7 @@ class ServiceCategoryImageSerializer(serializers.ModelSerializer):
         model = ServiceCategoryImage
         fields = (
             'id',
+            'title',
             'image'
         )
 
@@ -132,17 +125,27 @@ class TariffRetrieveSerializer(serializers.ModelSerializer):
 
 
     def get_special_condition(self, obj):
-        return TariffSpecialConditionSerializer(
-            obj.tariff_special_condition
-        ).data
+        if (TariffSpecialCondition.objects.filter(
+                tariff=obj
+            ).exists()
+        ):
+            return TariffSpecialConditionSerializer(
+                obj.tariff_special_condition
+            ).data
+        return {}
 
     def get_trial_period(self, obj):
-        return TariffTrialPeriodSerializer(
-            obj.tariff_trial_period
-        ).data
-
+        if (TariffTrialPeriod.objects.filter(
+                tariff=obj
+            ).exists()
+        ):
+            return TariffTrialPeriodSerializer(
+                obj.tariff_trial_period
+            ).data
+        return {}
 
 class TariffConditionSerializer(serializers.ModelSerializer):
+    period = serializers.SerializerMethodField()
 
     class Meta:
         model = TariffCondition
@@ -151,6 +154,9 @@ class TariffConditionSerializer(serializers.ModelSerializer):
             'period',
             'price'
         )
+
+    def get_period(self, obj):
+        return get_full_name_period(obj.count, obj.period)
 
 
 class TariffSpecialConditionSerializer(TariffConditionSerializer):

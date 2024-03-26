@@ -1,8 +1,10 @@
 import uuid
 
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from services.models import Service, Tariff
 
@@ -61,7 +63,7 @@ class UserService(models.Model):
         max_length=16,
         validators=[
            RegexValidator(
-               regex=r"^\+?1?\d{8,15}$"
+               regex=r'^\+79[0-9]{9}$'
            )
         ]
     )
@@ -69,6 +71,17 @@ class UserService(models.Model):
     class Meta:
         verbose_name = 'подписка пользователя'
         verbose_name_plural = 'Подписки пользователя'
+
+    def clean(self):
+        if self.start_date > self.end_date:
+            ValidationError(
+                {
+                    'start_date': _(
+                        'Дата начала подписки не может быть больше даты конца'
+                    )
+                }
+            )
+        return super().clean()
 
 
 class UserTrialPeriod(models.Model):
@@ -107,6 +120,17 @@ class UserTrialPeriod(models.Model):
             )
         ]
 
+    def clean(self):
+        if self.start_date > self.end_date:
+            ValidationError(
+                {
+                    'start_date': _(
+                        'Дата начала пробного периода не может быть больше даты конца'
+                    )
+                }
+            )
+        return super().clean()
+
 
 class UserSpecialCondition(models.Model):
     id = models.UUIDField(
@@ -143,3 +167,14 @@ class UserSpecialCondition(models.Model):
                 name='unique_user_tariff'
             )
         ]
+
+    def clean(self):
+        if self.start_date > self.end_date:
+            ValidationError(
+                {
+                    'start_date': _(
+                        'Дата начала специального условия не может быть больше даты конца'
+                    )
+                }
+            )
+        return super().clean()
