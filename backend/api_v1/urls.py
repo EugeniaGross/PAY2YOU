@@ -6,7 +6,7 @@ from rest_framework.routers import SimpleRouter
 from rest_framework import permissions
 
 from .services.views import CustomTokenObtainPairView, SevicesViewSet, CategoryImageViewSet, ServiceCategoryImageViewSet, PopularServiceViewSet, TariffViewSet
-from .users.views import UserServiceViewSet, UserHistoryPaymentViewSet, FutureExpensesViewSet, ExpensesByCategoryViewSet, CashbackViewSet
+from .users.views import UserServiceViewSet, UserHistoryPaymentViewSet, FutureExpensesViewSet, ExpensesViewSet, ExpensesByCategoryViewSet, CashbackViewSet
 router = SimpleRouter()
 
 router.register(
@@ -45,6 +45,11 @@ router.register(
     basename='payment-history'
 )
 router.register(
+    'analytics/expenses',
+    ExpensesViewSet,
+    basename='expenses'
+)
+router.register(
     'analytics/expenses-by-category',
     ExpensesByCategoryViewSet,
     basename='expenses-by-category'
@@ -59,7 +64,6 @@ router.register(
     CashbackViewSet,
     basename='cashback'
 )
-
 
 urlpatterns = [
     path('login/', CustomTokenObtainPairView.as_view(), name='create_jwt'),

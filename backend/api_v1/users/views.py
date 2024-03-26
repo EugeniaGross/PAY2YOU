@@ -4,6 +4,7 @@ from django.http import JsonResponse
 from rest_framework import filters
 from rest_framework import mixins
 from rest_framework import viewsets
+from django.http import JsonResponse
 
 from users.models import UserService
 
@@ -14,7 +15,8 @@ from .serializers import (
     UserHistoryPaymentSerializer,
     UserServiceUpdateSerialiser,
     FutureExpensesSerializer,
-    ExpensesByCategorySerializer
+    ExpensesSerializer,
+    ExpensesByCategorySerializer,
 )
 from ..filters import UserServiceFilter, UserServiceDateFilter
 from ..mixins import UpdateModelMixin
@@ -54,9 +56,26 @@ class UserHistoryPaymentViewSet(viewsets.ReadOnlyModelViewSet):
         )
 
 
+class ExpensesViewSet(viewsets.ModelViewSet):
+    serializer_class = ExpensesSerializer
+
+    def get_queryset(self):
+        return UserService.objects.filter(
+            user=self.request.user
+        )[:1]
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update(
+            {'start_date': self.request.GET.get('start_date'),
+             'end_date': self.request.GET.get('end_date')}
+        )
+        return context
+
+
 class ExpensesByCategoryViewSet(viewsets.ModelViewSet):
     serializer_class = ExpensesByCategorySerializer
-    queryset = UserService.objects.all()[:1]
+    queryset = UserService.objects.all()[:3]
 
     def get_serializer_context(self):
         context = super().get_serializer_context()

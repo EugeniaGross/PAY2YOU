@@ -28,7 +28,7 @@ def get_tariff_condition(obj, user):
     return obj.tariff.tariff_condition
 
 
-def get_past_expenses(obj, context):
+def get_past_expenses_category(obj, context):
     start_date = datetime.strptime(
         context.get('start_date'), '%Y-%m-%d')
     end_date = datetime.strptime(context.get('end_date'), '%Y-%m-%d')

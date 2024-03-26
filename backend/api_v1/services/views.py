@@ -15,7 +15,7 @@ from .serializers import (
     PopularServiceSerialiser,
     ServiceRetrieveSerializer,
     TariffListSerializer,
-    TariffRetrieveSerializer
+    TariffRetrieveSerializer,
 )
 
 
