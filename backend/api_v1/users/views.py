@@ -1,4 +1,7 @@
-from django.db.models import Sum
+from datetime import date
+from calendar import monthrange
+
+from django.db.models import Sum, F, Q
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from django.http import JsonResponse
@@ -304,15 +307,38 @@ class ExpensesByCategoryViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 class FutureExpensesViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
     def get_queryset(self):
-        return UserService.objects.filter(
-            user=self.request.user
+        last_day = monthrange(date.today().year, date.today().month)[1]
+        last_current_month_date = date(
+            date.today().year, date.today().month, last_day)
+        queryset = UserService.objects.filter(
+            user=self.request.user,
+            is_active=1,
+            auto_pay=1,
+            end_date__gt=date.today(),
+            end_date__lt=last_current_month_date,
         )
+        return queryset
 
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(
-            self.get_queryset()
-        ).aggregate(future_expenses=Sum('expense'))
-        return JsonResponse(queryset)
+        expense = {}
+        queryset = self.get_queryset()
+        special_condition_expense = queryset.filter(
+            tariff__tariff_trial_period__tariff_id=F('tariff'),
+            service__trial_period__end_date=F('end_date'),
+            tariff__tariff_special_condition__tariff_id=F('tariff'),
+        )
+        non_special_condition_expense = queryset.difference(
+            special_condition_expense)
+
+        expense = special_condition_expense.aggregate(
+            future_expenses=Sum('tariff__tariff_special_condition__price'))
+        for value in non_special_condition_expense.values(
+            'tariff__tariff_condition__price'
+        ):
+            expense['future_expenses'] = expense.get(
+                'future_expenses', 0) + list(value.values())[0]
+
+        return JsonResponse(expense)
 
 
 class CashbackViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):

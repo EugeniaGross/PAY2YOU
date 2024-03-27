@@ -62,9 +62,9 @@ class UserService(models.Model):
         'Номер телефона',
         max_length=16,
         validators=[
-           RegexValidator(
-               regex=r'^\+79[0-9]{9}$'
-           )
+            RegexValidator(
+                regex=r'^\+79[0-9]{9}$'
+            )
         ]
     )
 
