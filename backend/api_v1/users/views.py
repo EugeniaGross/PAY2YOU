@@ -22,9 +22,9 @@ from .serializers import (
     UserServiceRetrieveSerializer,
     UserHistoryPaymentSerializer,
     UserServiceUpdateSerialiser,
-    ExpensesSerializer,
     ExpensesByCategorySerializer,
-    CustomTokenObtainPairSerializer
+    CustomTokenObtainPairSerializer,
+    ExpensesSerializer
 )
 from ..filters import UserServiceFilter, UserServiceDateFilter
 from ..mixins import UpdateModelMixin
@@ -99,10 +99,10 @@ class UserServiceViewSet(UpdateModelMixin, mixins.CreateModelMixin, mixins.ListM
                             type=openapi.TYPE_OBJECT,
                             properties={
                                 'id': openapi.Schema(
-                                    type=openapi.TYPE_STRING
+                                 type=openapi.TYPE_STRING
                                 ),
                                 'logo': openapi.Schema(
-                                    type=openapi.TYPE_STRING
+                                 type=openapi.TYPE_STRING
                                 ),
                                 'service_name': openapi.Schema(
                                     type=openapi.TYPE_STRING
@@ -120,7 +120,7 @@ class UserServiceViewSet(UpdateModelMixin, mixins.CreateModelMixin, mixins.ListM
                                     type=openapi.TYPE_INTEGER
                                 ),
                                 'payment_date': openapi.Schema(
-                                    type=openapi.TYPE_STRING
+                                 type=openapi.TYPE_STRING
                                 ),
                                 'end_date': openapi.Schema(
                                     type=openapi.TYPE_STRING
@@ -208,10 +208,10 @@ class UserHistoryPaymentViewSet(viewsets.ReadOnlyModelViewSet):
                             type=openapi.TYPE_OBJECT,
                             properties={
                                 'id': openapi.Schema(
-                                    type=openapi.TYPE_STRING
+                                 type=openapi.TYPE_STRING
                                 ),
                                 'logo': openapi.Schema(
-                                    type=openapi.TYPE_STRING
+                                 type=openapi.TYPE_STRING
                                 ),
                                 'service_name': openapi.Schema(
                                     type=openapi.TYPE_STRING
@@ -339,7 +339,6 @@ class FutureExpensesViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
                 'future_expenses', 0) + list(value.values())[0]
 
         return JsonResponse(expense)
-
 
 class CashbackViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     filter_backends = (DjangoFilterBackend,)
