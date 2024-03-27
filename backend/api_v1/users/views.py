@@ -1,7 +1,7 @@
 from datetime import date
 from calendar import monthrange
 
-from django.db.models import Sum, F, Q
+from django.db.models import Sum, F
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from django.http import JsonResponse
@@ -99,10 +99,10 @@ class UserServiceViewSet(UpdateModelMixin, mixins.CreateModelMixin, mixins.ListM
                             type=openapi.TYPE_OBJECT,
                             properties={
                                 'id': openapi.Schema(
-                                 type=openapi.TYPE_STRING
+                                    type=openapi.TYPE_STRING
                                 ),
                                 'logo': openapi.Schema(
-                                 type=openapi.TYPE_STRING
+                                    type=openapi.TYPE_STRING
                                 ),
                                 'service_name': openapi.Schema(
                                     type=openapi.TYPE_STRING
@@ -120,7 +120,7 @@ class UserServiceViewSet(UpdateModelMixin, mixins.CreateModelMixin, mixins.ListM
                                     type=openapi.TYPE_INTEGER
                                 ),
                                 'payment_date': openapi.Schema(
-                                 type=openapi.TYPE_STRING
+                                    type=openapi.TYPE_STRING
                                 ),
                                 'end_date': openapi.Schema(
                                     type=openapi.TYPE_STRING
@@ -208,10 +208,10 @@ class UserHistoryPaymentViewSet(viewsets.ReadOnlyModelViewSet):
                             type=openapi.TYPE_OBJECT,
                             properties={
                                 'id': openapi.Schema(
-                                 type=openapi.TYPE_STRING
+                                    type=openapi.TYPE_STRING
                                 ),
                                 'logo': openapi.Schema(
-                                 type=openapi.TYPE_STRING
+                                    type=openapi.TYPE_STRING
                                 ),
                                 'service_name': openapi.Schema(
                                     type=openapi.TYPE_STRING
@@ -339,6 +339,7 @@ class FutureExpensesViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
                 'future_expenses', 0) + list(value.values())[0]
 
         return JsonResponse(expense)
+
 
 class CashbackViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     filter_backends = (DjangoFilterBackend,)
