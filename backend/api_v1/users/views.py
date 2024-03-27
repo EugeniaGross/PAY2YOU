@@ -20,7 +20,8 @@ from .serializers import (
     UserHistoryPaymentSerializer,
     UserServiceUpdateSerialiser,
     ExpensesByCategorySerializer,
-    CustomTokenObtainPairSerializer
+    CustomTokenObtainPairSerializer,
+    ExpensesSerializer
 )
 from ..filters import UserServiceFilter, UserServiceDateFilter
 from ..mixins import UpdateModelMixin
@@ -251,9 +252,10 @@ class UserHistoryPaymentViewSet(viewsets.ReadOnlyModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
 
-class ExpensesByCategoryViewSet(viewsets.ModelViewSet):
-    serializer_class = ExpensesByCategorySerializer
-    queryset = UserService.objects.all()[:1]
+
+class ExpensesViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    serializer_class = ExpensesSerializer
+    queryset = UserService.objects.all()
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
