@@ -19,6 +19,7 @@ from .serializers import (
     UserServiceRetrieveSerializer,
     UserHistoryPaymentSerializer,
     UserServiceUpdateSerialiser,
+    ExpensesSerializer,
     ExpensesByCategorySerializer,
     CustomTokenObtainPairSerializer
 )
@@ -95,10 +96,10 @@ class UserServiceViewSet(UpdateModelMixin, mixins.CreateModelMixin, mixins.ListM
                             type=openapi.TYPE_OBJECT,
                             properties={
                                 'id': openapi.Schema(
-                                 type=openapi.TYPE_STRING
+                                    type=openapi.TYPE_STRING
                                 ),
                                 'logo': openapi.Schema(
-                                 type=openapi.TYPE_STRING
+                                    type=openapi.TYPE_STRING
                                 ),
                                 'service_name': openapi.Schema(
                                     type=openapi.TYPE_STRING
@@ -116,7 +117,7 @@ class UserServiceViewSet(UpdateModelMixin, mixins.CreateModelMixin, mixins.ListM
                                     type=openapi.TYPE_INTEGER
                                 ),
                                 'payment_date': openapi.Schema(
-                                 type=openapi.TYPE_STRING
+                                    type=openapi.TYPE_STRING
                                 ),
                                 'end_date': openapi.Schema(
                                     type=openapi.TYPE_STRING
@@ -204,10 +205,10 @@ class UserHistoryPaymentViewSet(viewsets.ReadOnlyModelViewSet):
                             type=openapi.TYPE_OBJECT,
                             properties={
                                 'id': openapi.Schema(
-                                 type=openapi.TYPE_STRING
+                                    type=openapi.TYPE_STRING
                                 ),
                                 'logo': openapi.Schema(
-                                 type=openapi.TYPE_STRING
+                                    type=openapi.TYPE_STRING
                                 ),
                                 'service_name': openapi.Schema(
                                     type=openapi.TYPE_STRING
@@ -251,9 +252,10 @@ class UserHistoryPaymentViewSet(viewsets.ReadOnlyModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
 
-class ExpensesByCategoryViewSet(viewsets.ModelViewSet):
-    serializer_class = ExpensesByCategorySerializer
-    queryset = UserService.objects.all()[:1]
+
+class ExpensesViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    serializer_class = ExpensesSerializer
+    queryset = UserService.objects.all()
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -311,6 +313,7 @@ class FutureExpensesViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
             self.get_queryset()
         ).aggregate(future_expenses=Sum('expense'))
         return JsonResponse(queryset)
+
 
 class CashbackViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     filter_backends = (DjangoFilterBackend,)
