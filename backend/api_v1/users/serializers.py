@@ -2,11 +2,32 @@ from datetime import datetime, timedelta
 from math import floor
 from re import search
 
+from django.contrib.auth.models import update_last_login
 from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.settings import api_settings
 
 from services.models import TariffTrialPeriod, TariffSpecialCondition
 from users.models import UserService, UserTrialPeriod, UserSpecialCondition
 from ..utils import get_tariff_condition, get_days, get_full_name_period, get_fut_expenses, get_past_expenses
+
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+
+    def validate(self, attrs):
+        data = super().validate(attrs)
+
+        refresh = self.get_token(self.user)
+
+        data['access'] = str(refresh.access_token)
+        data['type'] = "Bearer"
+        data['validity_period'] = 28800
+        data['refresh'] = str(refresh)
+
+        if api_settings.UPDATE_LAST_LOGIN:
+            update_last_login(None, self.user)
+
+        return data
 
 
 class UserServiceRetrieveSerializer(serializers.ModelSerializer):
@@ -207,8 +228,7 @@ class UserServiceUpdateSerialiser(serializers.ModelSerializer):
     class Meta:
         model = UserService
         fields = (
-            'is_active',
-            'auto_pay'
+            'auto_pay',
         )
 
     def validate(self, attrs):

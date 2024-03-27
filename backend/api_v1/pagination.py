@@ -9,6 +9,6 @@ class ServicePagination(LimitOffsetPagination):
     def get_paginated_response(self, data):
         return Response({
             'data': data,
-            'previousLink': self.get_previous_link(),
-            'nextLink': self.get_next_link()
+            'previous': self.get_previous_link(),
+            'next': self.get_next_link()
         })

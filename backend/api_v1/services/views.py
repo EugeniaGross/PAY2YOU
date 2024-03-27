@@ -2,13 +2,14 @@ from django.db.models import Count
 from django.shortcuts import get_object_or_404
 from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 from rest_framework import viewsets
-from rest_framework_simplejwt.views import TokenObtainPairView
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+from rest_framework import status
 
 from services.models import Service
 
 from ..pagination import ServicePagination
 from .serializers import (
-    CustomTokenObtainPairSerializer,
     ServiceListSerializer,
     CategoryImageSerializer,
     ServiceCategoryImageSerializer,
@@ -17,10 +18,6 @@ from .serializers import (
     TariffListSerializer,
     TariffRetrieveSerializer
 )
-
-
-class CustomTokenObtainPairView(TokenObtainPairView):
-    serializer_class = CustomTokenObtainPairSerializer
 
 
 class ServiceParentViewSet(ListModelMixin, viewsets.GenericViewSet):
@@ -35,6 +32,55 @@ class SevicesViewSet(RetrieveModelMixin, ServiceParentViewSet):
             return ServiceListSerializer
         return ServiceRetrieveSerializer
 
+    @swagger_auto_schema(
+        operation_description=(
+            'Список сервисов '
+        ),
+        responses={
+            status.HTTP_201_CREATED: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'data': openapi.Schema(
+                        type=openapi.TYPE_ARRAY,
+                        items=openapi.Items(
+                            type=openapi.TYPE_OBJECT,
+                            properties={
+                                'id': openapi.Schema(
+                                 type=openapi.TYPE_STRING
+                                ),
+                                'logo': openapi.Schema(
+                                 type=openapi.TYPE_STRING
+                                ),
+                                'name': openapi.Schema(
+                                    type=openapi.TYPE_STRING
+                                ),
+                                'cashback': openapi.Schema(
+                                    type=openapi.TYPE_INTEGER
+                                )
+                            }
+                        )
+                    ),
+                    'next': openapi.Schema(
+                        type=openapi.TYPE_STRING
+                    ),
+                    'previous': openapi.Schema(
+                        type=openapi.TYPE_STRING
+                    )
+                }
+            )
+        }
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_description=(
+            'Информация о сервисе '
+        )
+    )
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+
 
 class CategoryImageViewSet(ServiceParentViewSet):
     serializer_class = CategoryImageSerializer
@@ -45,6 +91,41 @@ class CategoryImageViewSet(ServiceParentViewSet):
             id=self.kwargs['service_id']
         )
         return service.category_images.all()
+
+    @swagger_auto_schema(
+        operation_description=(
+            'Список категорий постеров сервиса '
+        ),
+        responses={
+            status.HTTP_200_OK: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'data': openapi.Schema(
+                        type=openapi.TYPE_ARRAY,
+                        items=openapi.Items(
+                            type=openapi.TYPE_OBJECT,
+                            properties={
+                                'id': openapi.Schema(
+                                 type=openapi.TYPE_STRING
+                                ),
+                                'name': openapi.Schema(
+                                    type=openapi.TYPE_STRING
+                                ),
+                            }
+                        )
+                    ),
+                    'next': openapi.Schema(
+                        type=openapi.TYPE_STRING
+                    ),
+                    'previous': openapi.Schema(
+                        type=openapi.TYPE_STRING
+                    )
+                }
+            )
+        }
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
 
 class ServiceCategoryImageViewSet(ServiceParentViewSet):
@@ -61,6 +142,44 @@ class ServiceCategoryImageViewSet(ServiceParentViewSet):
         )
         return category.service_category_images.all()
 
+    @swagger_auto_schema(
+        operation_description=(
+            'Список изображений в категории '
+        ),
+        responses={
+            status.HTTP_201_CREATED: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'data': openapi.Schema(
+                        type=openapi.TYPE_ARRAY,
+                        items=openapi.Items(
+                            type=openapi.TYPE_OBJECT,
+                            properties={
+                                'id': openapi.Schema(
+                                 type=openapi.TYPE_STRING
+                                ),
+                                'title': openapi.Schema(
+                                 type=openapi.TYPE_STRING
+                                ),
+                                'image': openapi.Schema(
+                                    type=openapi.TYPE_STRING
+                                )
+                            }
+                        )
+                    ),
+                    'next': openapi.Schema(
+                        type=openapi.TYPE_STRING
+                    ),
+                    'previous': openapi.Schema(
+                        type=openapi.TYPE_STRING
+                    )
+                }
+            )
+        }
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
 
 class PopularServiceViewSet(ServiceParentViewSet):
     serializer_class = PopularServiceSerialiser
@@ -71,6 +190,44 @@ class PopularServiceViewSet(ServiceParentViewSet):
             Count('user_services__is_active')
         ).order_by('-user_services__is_active__count')
         return queryset
+
+    @swagger_auto_schema(
+        operation_description=(
+            'Список сервисов в порядке убывания популярности '
+        ),
+        responses={
+            status.HTTP_201_CREATED: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'data': openapi.Schema(
+                        type=openapi.TYPE_ARRAY,
+                        items=openapi.Items(
+                            type=openapi.TYPE_OBJECT,
+                            properties={
+                                'id': openapi.Schema(
+                                 type=openapi.TYPE_STRING
+                                ),
+                                'logo': openapi.Schema(
+                                 type=openapi.TYPE_STRING
+                                ),
+                                'cashback': openapi.Schema(
+                                    type=openapi.TYPE_INTEGER
+                                )
+                            }
+                        )
+                    ),
+                    'next': openapi.Schema(
+                        type=openapi.TYPE_STRING
+                    ),
+                    'previous': openapi.Schema(
+                        type=openapi.TYPE_STRING
+                    )
+                }
+            )
+        }
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
 
 class TariffViewSet(RetrieveModelMixin, ServiceParentViewSet):
@@ -87,3 +244,107 @@ class TariffViewSet(RetrieveModelMixin, ServiceParentViewSet):
         if self.action == 'list':
             return TariffListSerializer
         return TariffRetrieveSerializer
+
+    @swagger_auto_schema(
+        operation_description=(
+            'Список тарифов сервиса '
+        ),
+        responses={
+            status.HTTP_201_CREATED: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'data': openapi.Schema(
+                        type=openapi.TYPE_ARRAY,
+                        items=openapi.Items(
+                            type=openapi.TYPE_OBJECT,
+                            properties={
+                                'id': openapi.Schema(
+                                 type=openapi.TYPE_STRING
+                                ),
+                                'name': openapi.Schema(
+                                 type=openapi.TYPE_STRING
+                                ),
+                                'descrition': openapi.Schema(
+                                    type=openapi.TYPE_STRING
+                                )
+                            }
+                        )
+                    ),
+                    'next': openapi.Schema(
+                        type=openapi.TYPE_STRING
+                    ),
+                    'previous': openapi.Schema(
+                        type=openapi.TYPE_STRING
+                    )
+                }
+            )
+        }
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_description=(
+            'Подробная информация о тарифе сервиса '
+        ),
+        responses={
+            status.HTTP_200_OK: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'id': openapi.Schema(
+                        type=openapi.TYPE_STRING
+                    ),
+                    'name': openapi.Schema(
+                        type=openapi.TYPE_STRING
+                    ),
+                    'decsription': openapi.Schema(
+                        type=openapi.TYPE_STRING
+                    ),
+                    'condition': openapi.Schema(
+                        type=openapi.TYPE_OBJECT,
+                        properties={
+                            'count': openapi.Schema(
+                                type=openapi.TYPE_INTEGER
+                            ),
+                            'period': openapi.Schema(
+                                type=openapi.TYPE_STRING
+                            ),
+                            'price': openapi.Schema(
+                                type=openapi.TYPE_INTEGER
+                            )
+                        }
+                    ),
+                    'special_condition': openapi.Schema(
+                        type=openapi.TYPE_OBJECT,
+                        properties={
+                            'count': openapi.Schema(
+                                type=openapi.TYPE_INTEGER
+                            ),
+                            'period': openapi.Schema(
+                                type=openapi.TYPE_STRING
+                            ),
+                            'price': openapi.Schema(
+                                type=openapi.TYPE_INTEGER
+                            )
+                        }
+                    ),
+                    'trial_period': openapi.Schema(
+                        type=openapi.TYPE_OBJECT,
+                        properties={
+                            'count': openapi.Schema(
+                                type=openapi.TYPE_INTEGER
+                            ),
+                            'period': openapi.Schema(
+                                type=openapi.TYPE_STRING
+                            ),
+                            'price': openapi.Schema(
+                                type=openapi.TYPE_INTEGER
+                            )
+                        }
+                    ),
+                }
+            )
+        }
+    )
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)

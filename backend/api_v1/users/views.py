@@ -4,6 +4,11 @@ from django.http import JsonResponse
 from rest_framework import filters
 from rest_framework import mixins
 from rest_framework import viewsets
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+from rest_framework import status
+from rest_framework.request import Request
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 from users.models import UserService
 
@@ -14,11 +19,44 @@ from .serializers import (
     UserHistoryPaymentSerializer,
     UserServiceUpdateSerialiser,
     FutureExpensesSerializer,
-    ExpensesByCategorySerializer
+    ExpensesByCategorySerializer,
+    CustomTokenObtainPairSerializer
 )
 from ..filters import UserServiceFilter, UserServiceDateFilter
 from ..mixins import UpdateModelMixin
 from ..pagination import ServicePagination
+
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
+
+    @swagger_auto_schema(
+        operation_description=(
+            'Возвращает токен, тип токена и время жизни в '
+            'секундах.'
+        ),
+        responses={
+            status.HTTP_201_CREATED: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'access': openapi.Schema(
+                        type=openapi.TYPE_STRING
+                    ),
+                    'type': openapi.Schema(
+                        type=openapi.TYPE_STRING
+                    ),
+                    'validity_period': openapi.Schema(
+                        type=openapi.TYPE_INTEGER
+                    ),
+                    'refresh': openapi.Schema(
+                        type=openapi.TYPE_STRING
+                    )
+                }
+            )
+        }
+    )
+    def post(self, request: Request, *args, **kwargs) -> mixins.Response:
+        return super().post(request, *args, **kwargs)
 
 
 class UserServiceViewSet(UpdateModelMixin, mixins.CreateModelMixin, mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
@@ -40,6 +78,105 @@ class UserServiceViewSet(UpdateModelMixin, mixins.CreateModelMixin, mixins.ListM
             return UserServiceUpdateSerialiser
         return UserServiceRetrieveSerializer
 
+    @swagger_auto_schema(
+        operation_description=(
+            'Возвращает список подписок пользователя. '
+            'При использовании в параметре is_active=1 '
+            'возвращает список активных подписок, при использовании '
+            'is_active=0 список неактивных подписок.'
+        ),
+        responses={
+            status.HTTP_201_CREATED: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'data': openapi.Schema(
+                        type=openapi.TYPE_ARRAY,
+                        items=openapi.Items(
+                            type=openapi.TYPE_OBJECT,
+                            properties={
+                                'id': openapi.Schema(
+                                 type=openapi.TYPE_STRING
+                                ),
+                                'logo': openapi.Schema(
+                                 type=openapi.TYPE_STRING
+                                ),
+                                'service_name': openapi.Schema(
+                                    type=openapi.TYPE_STRING
+                                ),
+                                'tariff_name': openapi.Schema(
+                                    type=openapi.TYPE_STRING
+                                ),
+                                'count': openapi.Schema(
+                                    type=openapi.TYPE_INTEGER
+                                ),
+                                'period': openapi.Schema(
+                                    type=openapi.TYPE_STRING
+                                ),
+                                'price': openapi.Schema(
+                                    type=openapi.TYPE_INTEGER
+                                ),
+                                'payment_date': openapi.Schema(
+                                 type=openapi.TYPE_STRING
+                                ),
+                                'end_date': openapi.Schema(
+                                    type=openapi.TYPE_STRING
+                                ),
+                                'trial_period_end_date': openapi.Schema(
+                                    type=openapi.TYPE_STRING
+                                ),
+                                'is_active': openapi.Schema(
+                                    type=openapi.TYPE_INTEGER
+                                ),
+                            }
+                        )
+                    ),
+                    'next': openapi.Schema(
+                        type=openapi.TYPE_STRING
+                    ),
+                    'previous': openapi.Schema(
+                        type=openapi.TYPE_STRING
+                    )
+                }
+            )
+        }
+
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_description=(
+            'Возвращает информацию о подписке пользователя. '
+        )
+    )
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_description=(
+            'Подключение подписки. Для подключения подписки '
+            'необходимо в теле запроса передать id тарифа и '
+            'и номер телефона пользователя. Пользователь может '
+            'подключить этот тариф только один раз. При отключении '
+            'подписки он сможет ее возобновить.'
+        ),
+        responses={status.HTTP_200_OK: UserServiceRetrieveSerializer}
+    )
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_description=(
+            'Отключение и возобновление подписки. Для отключения подписки '
+            'необходимо в теле запроса auto_pay=False. Для возобновления '
+            'auto_pay=False. Если при возобновлении срок действия подписки '
+            'окончен, создается новый экземпляр подписки.'
+        ),
+        responses={status.HTTP_200_OK: UserServiceRetrieveSerializer}
+    )
+    def partial_update(self, request, *args, **kwargs):
+        return super().partial_update(request, *args, **kwargs)
+
 
 class UserHistoryPaymentViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = UserHistoryPaymentSerializer
@@ -53,6 +190,66 @@ class UserHistoryPaymentViewSet(viewsets.ReadOnlyModelViewSet):
             user=self.request.user
         )
 
+    @swagger_auto_schema(
+        operation_description=(
+            'Список платежей пользователя '
+        ),
+        responses={
+            status.HTTP_201_CREATED: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'data': openapi.Schema(
+                        type=openapi.TYPE_ARRAY,
+                        items=openapi.Items(
+                            type=openapi.TYPE_OBJECT,
+                            properties={
+                                'id': openapi.Schema(
+                                 type=openapi.TYPE_STRING
+                                ),
+                                'logo': openapi.Schema(
+                                 type=openapi.TYPE_STRING
+                                ),
+                                'service_name': openapi.Schema(
+                                    type=openapi.TYPE_STRING
+                                ),
+                                'tariff_name': openapi.Schema(
+                                    type=openapi.TYPE_STRING
+                                ),
+                                'cashback': openapi.Schema(
+                                    type=openapi.TYPE_INTEGER
+                                ),
+                                'price': openapi.Schema(
+                                    type=openapi.TYPE_INTEGER
+                                ),
+                                'status_cashback': openapi.Schema(
+                                    type=openapi.TYPE_BOOLEAN
+                                ),
+                                'date': openapi.Schema(
+                                    type=openapi.TYPE_STRING
+                                ),
+                            }
+                        )
+                    ),
+                    'next': openapi.Schema(
+                        type=openapi.TYPE_STRING
+                    ),
+                    'previous': openapi.Schema(
+                        type=openapi.TYPE_STRING
+                    )
+                }
+            )
+        }
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_description=(
+            'Детали оплаты подписки пользователя '
+        )
+    )
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
 
 class ExpensesByCategoryViewSet(viewsets.ModelViewSet):
     serializer_class = ExpensesByCategorySerializer
@@ -79,7 +276,6 @@ class FutureExpensesViewSet(viewsets.ModelViewSet):
         )
         return context
 
-
 class CashbackViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_class = UserServiceDateFilter
@@ -89,6 +285,24 @@ class CashbackViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
             user=self.request.user
         )
 
+    @swagger_auto_schema(
+        operation_description=(
+            'Возвращает сколько всего кэшбека заработал пользователь '
+            'за время использования приложения PAY2YOU. '
+            'При использовании параметров запроса start_date и end_date '
+            'возвращает сумму кэшбека за период.'
+        ),
+        responses={
+            status.HTTP_200_OK: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'cashback': openapi.Schema(
+                        type=openapi.TYPE_INTEGER
+                    )
+                }
+            )
+        }
+    )
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(
             self.get_queryset()
