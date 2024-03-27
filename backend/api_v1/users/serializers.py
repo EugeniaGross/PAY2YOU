@@ -2,11 +2,32 @@ from datetime import datetime, timedelta
 from math import floor
 from re import search
 
+from django.contrib.auth.models import update_last_login
 from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.settings import api_settings
 
 from services.models import TariffTrialPeriod, TariffSpecialCondition
 from users.models import UserService, UserTrialPeriod, UserSpecialCondition
-from ..utils import get_tariff_condition, get_days, get_full_name_period, get_fut_expenses, get_past_expenses
+from ..utils import get_tariff_condition, get_days, get_full_name_period, get_past_expenses_category
+
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+
+    def validate(self, attrs):
+        data = super().validate(attrs)
+
+        refresh = self.get_token(self.user)
+
+        data['access'] = str(refresh.access_token)
+        data['type'] = "Bearer"
+        data['validity_period'] = 28800
+        data['refresh'] = str(refresh)
+
+        if api_settings.UPDATE_LAST_LOGIN:
+            update_last_login(None, self.user)
+
+        return data
 
 
 class UserServiceRetrieveSerializer(serializers.ModelSerializer):
@@ -107,7 +128,7 @@ class UserServiceCreateSerialiser(serializers.ModelSerializer):
         if not phone_number:
             raise serializers.ValidationError(
                 'Введите корректный номер телефона'
-        )
+            )
         if UserService.objects.filter(
             user=self.context['request'].user,
             tariff=attrs['tariff'],
@@ -115,9 +136,8 @@ class UserServiceCreateSerialiser(serializers.ModelSerializer):
         ).exists():
             raise serializers.ValidationError(
                 'Вы уже были подписаны на этот сервис и тариф'
-        )
+            )
         return super().validate(attrs)
-
 
     def create(self, validated_data):
         if (TariffTrialPeriod.objects.filter(
@@ -126,7 +146,7 @@ class UserServiceCreateSerialiser(serializers.ModelSerializer):
             and not UserTrialPeriod.objects.filter(
                 user=self.context['request'].user,
                 service=validated_data['tariff'].service
-            ).exists()
+        ).exists()
         ):
             days = get_days(validated_data['tariff'].tariff_trial_period)
             user_service = UserService.objects.create(
@@ -135,8 +155,8 @@ class UserServiceCreateSerialiser(serializers.ModelSerializer):
                 tariff=validated_data['tariff'],
                 start_date=datetime.now().date(),
                 end_date=datetime.now().date() + timedelta(days=days),
-                expense = validated_data['tariff'].tariff_trial_period.price,
-                cashback = 0,
+                expense=validated_data['tariff'].tariff_trial_period.price,
+                cashback=0,
                 is_active=True,
                 auto_pay=True,
                 status_cashback=False,
@@ -155,7 +175,7 @@ class UserServiceCreateSerialiser(serializers.ModelSerializer):
             and not UserSpecialCondition.objects.filter(
                 user=self.context['request'].user,
                 tariff=validated_data['tariff']
-            ).exists()
+        ).exists()
         ):
             days = get_days(validated_data['tariff'].tariff_special_condition)
             user_service = UserService.objects.create(
@@ -164,8 +184,8 @@ class UserServiceCreateSerialiser(serializers.ModelSerializer):
                 tariff=validated_data['tariff'],
                 start_date=datetime.now().date(),
                 end_date=datetime.now().date() + timedelta(days=days),
-                expense = validated_data['tariff'].tariff_special_condition.price,
-                cashback = 0,
+                expense=validated_data['tariff'].tariff_special_condition.price,
+                cashback=0,
                 is_active=True,
                 auto_pay=True,
                 status_cashback=False,
@@ -187,8 +207,8 @@ class UserServiceCreateSerialiser(serializers.ModelSerializer):
             tariff=validated_data['tariff'],
             start_date=datetime.now().date(),
             end_date=datetime.now().date() + timedelta(days=days),
-            expense = validated_data['tariff'].tariff_condition.price,
-            cashback = floor(price * cashback / 100),
+            expense=validated_data['tariff'].tariff_condition.price,
+            cashback=floor(price * cashback / 100),
             is_active=True,
             auto_pay=True,
             status_cashback=False,
@@ -207,8 +227,7 @@ class UserServiceUpdateSerialiser(serializers.ModelSerializer):
     class Meta:
         model = UserService
         fields = (
-            'is_active',
-            'auto_pay'
+            'auto_pay',
         )
 
     def validate(self, attrs):
@@ -218,7 +237,7 @@ class UserServiceUpdateSerialiser(serializers.ModelSerializer):
                 tariff=self.instance.tariff,
                 is_active=True,
                 auto_pay=True
-            ).exists()
+        ).exists()
         ):
             raise serializers.ValidationError(
                 'Подписка уже возобновлена'
@@ -233,7 +252,7 @@ class UserServiceUpdateSerialiser(serializers.ModelSerializer):
                 and not UserSpecialCondition.objects.filter(
                     user=self.context['request'].user,
                     tariff=instance.tariff
-                ).exists()
+            ).exists()
             ):
                 days = get_days(instance.tariff.tariff_special_condition)
                 instance = UserService.objects.create(
@@ -242,8 +261,8 @@ class UserServiceUpdateSerialiser(serializers.ModelSerializer):
                     tariff=instance.tariff,
                     start_date=datetime.now().date(),
                     end_date=datetime.now().date() + timedelta(days=days),
-                    expense = instance.tariff.tariff_special_condition.price,
-                    cashback = 0,
+                    expense=instance.tariff.tariff_special_condition.price,
+                    cashback=0,
                     is_active=True,
                     auto_pay=True,
                     status_cashback=False,
@@ -265,8 +284,8 @@ class UserServiceUpdateSerialiser(serializers.ModelSerializer):
                 tariff=instance.tariff,
                 start_date=datetime.now().date(),
                 end_date=datetime.now().date() + timedelta(days=days),
-                expense = instance.tariff.tariff_condition.price,
-                cashback = floor(price * cashback / 100),
+                expense=instance.tariff.tariff_condition.price,
+                cashback=floor(price * cashback / 100),
                 is_active=True,
                 auto_pay=True,
                 status_cashback=False,
@@ -302,6 +321,20 @@ class UserHistoryPaymentSerializer(serializers.ModelSerializer):
         )
 
 
+class ExpensesSerializer(serializers.ModelSerializer):
+    expenses = serializers.SerializerMethodField()
+
+    class Meta:
+        model = UserService
+        fields = ('expenses',)
+
+    def get_expenses(self, obj):
+        total = 0
+        for expense in get_past_expenses_category(obj, self.context):
+            total += expense.get('expenses')
+        return total
+
+
 class ExpensesByCategorySerializer(serializers.ModelSerializer):
     data = serializers.SerializerMethodField()
 
@@ -310,19 +343,7 @@ class ExpensesByCategorySerializer(serializers.ModelSerializer):
         fields = ('data',)
 
     def get_data(self, obj):
-        for exp in get_past_expenses(obj, self.context):
-            del exp['service__category__name']
-            yield exp
-
-
-class FutureExpensesSerializer(serializers.ModelSerializer):
-    future_expenses = serializers.SerializerMethodField()
-
-    class Meta:
-        model = UserService
-        fields = (
-            'future_expenses',
-        )
-
-    def get_future_expenses(self, obj):
-        return get_fut_expenses(obj, self.context)
+        expenses = get_past_expenses_category(obj, self.context)
+        for expense in expenses:
+            del expense['service__category__name']
+        return expenses

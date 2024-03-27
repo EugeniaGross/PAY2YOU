@@ -28,7 +28,7 @@ def get_tariff_condition(obj, user):
     return obj.tariff.tariff_condition
 
 
-def get_past_expenses(obj, context):
+def get_past_expenses_category(obj, context):
     start_date = datetime.strptime(
         context.get('start_date'), '%Y-%m-%d')
     end_date = datetime.strptime(context.get('end_date'), '%Y-%m-%d')
@@ -41,15 +41,6 @@ def get_past_expenses(obj, context):
         name=F('service__category__name'), expenses=Sum('expense')
     )
     return expense
-
-
-def get_fut_expenses(obj, context):
-    expense = UserService.objects.filter(
-        user=context['request'].user,
-        is_active=True,
-        auto_pay=True
-    ).aggregate(Sum('expense'))
-    return expense['expense__sum']
 
 
 def get_days(tariff_condition):
