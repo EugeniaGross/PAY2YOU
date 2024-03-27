@@ -1,4 +1,5 @@
 from django.db.models import Sum
+from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from django.http import JsonResponse
 from rest_framework import filters
@@ -14,7 +15,6 @@ from .serializers import (
     UserServiceRetrieveSerializer,
     UserHistoryPaymentSerializer,
     UserServiceUpdateSerialiser,
-    FutureExpensesSerializer,
     ExpensesSerializer,
     ExpensesByCategorySerializer,
 )
@@ -58,45 +58,64 @@ class UserHistoryPaymentViewSet(viewsets.ReadOnlyModelViewSet):
 
 class ExpensesViewSet(viewsets.ModelViewSet):
     serializer_class = ExpensesSerializer
+    queryset = UserService.objects.all()
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update(
+            {'start_date': self.request.GET.get('start_date'),
+             'end_date': self.request.GET.get('end_date')}
+        )
+        return context
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        if serializer.data:
+            return Response(serializer.data[0])
+        return Response(serializer.data)
+
+
+class ExpensesByCategoryViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    serializer_class = ExpensesByCategorySerializer
+    queryset = UserService.objects.all()
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update(
+            {'start_date': self.request.GET.get('start_date'),
+             'end_date': self.request.GET.get('end_date')}
+        )
+        return context
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        if serializer.data:
+            return Response(serializer.data[0])
+        return Response(serializer.data)
+
+
+class FutureExpensesViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
     def get_queryset(self):
         return UserService.objects.filter(
             user=self.request.user
-        )[:1]
-
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context.update(
-            {'start_date': self.request.GET.get('start_date'),
-             'end_date': self.request.GET.get('end_date')}
         )
-        return context
 
-
-class ExpensesByCategoryViewSet(viewsets.ModelViewSet):
-    serializer_class = ExpensesByCategorySerializer
-    queryset = UserService.objects.all()[:3]
-
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context.update(
-            {'start_date': self.request.GET.get('start_date'),
-             'end_date': self.request.GET.get('end_date')}
-        )
-        return context
-
-
-class FutureExpensesViewSet(viewsets.ModelViewSet):
-    serializer_class = FutureExpensesSerializer
-    queryset = UserService.objects.all()[:1]
-
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context.update(
-            {'start_date': self.request.GET.get('start_date'),
-             'end_date': self.request.GET.get('end_date')}
-        )
-        return context
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(
+            self.get_queryset()
+        ).aggregate(future_expenses=Sum('expense'))
+        return JsonResponse(queryset)
 
 
 class CashbackViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):

@@ -6,7 +6,7 @@ from rest_framework import serializers
 
 from services.models import TariffTrialPeriod, TariffSpecialCondition
 from users.models import UserService, UserTrialPeriod, UserSpecialCondition
-from ..utils import get_tariff_condition, get_days, get_full_name_period, get_fut_expenses, get_past_expenses_category
+from ..utils import get_tariff_condition, get_days, get_full_name_period, get_past_expenses_category
 
 
 class UserServiceRetrieveSerializer(serializers.ModelSerializer):
@@ -327,16 +327,3 @@ class ExpensesByCategorySerializer(serializers.ModelSerializer):
         for expense in expenses:
             del expense['service__category__name']
         return expenses
-
-
-class FutureExpensesSerializer(serializers.ModelSerializer):
-    future_expenses = serializers.SerializerMethodField()
-
-    class Meta:
-        model = UserService
-        fields = (
-            'future_expenses',
-        )
-
-    def get_future_expenses(self, obj):
-        return get_fut_expenses(obj, self.context)

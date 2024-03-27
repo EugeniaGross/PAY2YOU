@@ -43,15 +43,6 @@ def get_past_expenses_category(obj, context):
     return expense
 
 
-def get_fut_expenses(obj, context):
-    expense = UserService.objects.filter(
-        user=context['request'].user,
-        is_active=True,
-        auto_pay=True
-    ).aggregate(Sum('expense'))
-    return expense['expense__sum']
-
-
 def get_days(tariff_condition):
     if tariff_condition.period == 'M':
         return tariff_condition.count * 30
