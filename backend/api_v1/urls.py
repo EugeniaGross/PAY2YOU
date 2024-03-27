@@ -6,7 +6,7 @@ from drf_yasg import openapi
 from django.conf.urls import url
 
 from .services.views import SevicesViewSet, CategoryImageViewSet, ServiceCategoryImageViewSet, PopularServiceViewSet, TariffViewSet
-from .users.views import CustomTokenObtainPairView, UserServiceViewSet, UserHistoryPaymentViewSet, FutureExpensesViewSet, ExpensesByCategoryViewSet, CashbackViewSet
+from .users.views import CustomTokenObtainPairView, UserServiceViewSet, UserHistoryPaymentViewSet, FutureExpensesViewSet, ExpensesViewSet, ExpensesByCategoryViewSet, CashbackViewSet
 router = SimpleRouter()
 
 router.register(
@@ -45,6 +45,11 @@ router.register(
     basename='payment-history'
 )
 router.register(
+    'analytics/expenses',
+    ExpensesViewSet,
+    basename='expenses'
+)
+router.register(
     'analytics/expenses-by-category',
     ExpensesByCategoryViewSet,
     basename='expenses-by-category'
@@ -59,7 +64,6 @@ router.register(
     CashbackViewSet,
     basename='cashback'
 )
-
 
 urlpatterns = [
     path('login/', CustomTokenObtainPairView.as_view(), name='create_jwt'),
