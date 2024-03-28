@@ -268,6 +268,39 @@ class ExpensesViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         )
         return context
 
+    @swagger_auto_schema(
+        operation_description=(
+            'Возвращает расходы за выбранный период '
+            'за время использования приложения PAY2YOU. '
+            'Период задается параметрами запроса start_date и end_date. '
+        ),
+        manual_parameters=[
+            openapi.Parameter(
+                "start_date",
+                openapi.IN_PATH,
+                description=("Дата начала периода"),
+                type=openapi.TYPE_STRING,
+                required=True,
+            ),
+            openapi.Parameter(
+                "end_date",
+                openapi.IN_PATH,
+                description=("Дата окончания периода"),
+                type=openapi.TYPE_STRING,
+                required=True,
+            )
+        ],
+        responses={
+            status.HTTP_200_OK: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'expenses': openapi.Schema(
+                        type=openapi.TYPE_INTEGER
+                    )
+                }
+            )
+        }
+    )
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         page = self.paginate_queryset(queryset)
@@ -292,6 +325,50 @@ class ExpensesByCategoryViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         )
         return context
 
+    @swagger_auto_schema(
+        operation_description=(
+            'Возвращает расходы за выбранный период, отсортированные по категориям '
+            'за время использования приложения PAY2YOU. '
+            'Период задается параметрами запроса start_date и end_date. '
+        ),
+        manual_parameters=[
+            openapi.Parameter(
+                "start_date",
+                openapi.IN_PATH,
+                description=("Дата начала периода"),
+                type=openapi.TYPE_STRING,
+                required=True,
+            ),
+            openapi.Parameter(
+                "end_date",
+                openapi.IN_PATH,
+                description=("Дата окончания периода"),
+                type=openapi.TYPE_STRING,
+                required=True,
+            )
+        ],
+        responses={
+            status.HTTP_200_OK: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'data': openapi.Schema(
+                        type=openapi.TYPE_ARRAY,
+                        items=openapi.Items(
+                            type=openapi.TYPE_OBJECT,
+                            properties={
+                                'name': openapi.Schema(
+                                    type=openapi.TYPE_STRING
+                                ),
+                                'expenses': openapi.Schema(
+                                    type=openapi.TYPE_INTEGER
+                                )
+                            }
+                        )
+                    )
+                }
+            )
+        }
+    )
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         page = self.paginate_queryset(queryset)
@@ -317,8 +394,25 @@ class FutureExpensesViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
             end_date__gt=date.today(),
             end_date__lt=last_current_month_date,
         )
+
         return queryset
 
+    @swagger_auto_schema(
+        operation_description=(
+            'Возвращает предстоящие затраты пользователя '
+            'на подписки в текущем месяце.  '
+        ),
+        responses={
+            status.HTTP_200_OK: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'future_expenses': openapi.Schema(
+                        type=openapi.TYPE_INTEGER
+                    )
+                }
+            )
+        }
+    )
     def list(self, request, *args, **kwargs):
         expense = {}
         queryset = self.get_queryset()
