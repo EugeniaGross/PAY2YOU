@@ -4,10 +4,10 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 CHOICES = (
-        ('D', 'Day'),
-        ('M', 'Month'),
-        ('Y', 'Year'),
-    )
+    ('D', 'Day'),
+    ('M', 'Month'),
+    ('Y', 'Year'),
+)
 
 
 class CategoryService(models.Model):
@@ -130,7 +130,7 @@ class TariffTrialPeriod(models.Model):
     period = models.CharField(
         'Пробный период (день, месяц, год)',
         max_length=250,
-        choices = CHOICES,
+        choices=CHOICES,
     )
     price = models.PositiveSmallIntegerField(
         'Цена пробного периода'
@@ -160,7 +160,7 @@ class TariffCondition(models.Model):
     period = models.CharField(
         'Период (день, месяц, год)',
         max_length=250,
-        choices = CHOICES
+        choices=CHOICES
     )
     price = models.PositiveIntegerField()
 
@@ -182,7 +182,7 @@ class TariffSpecialCondition(models.Model):
     period = models.CharField(
         'Период (день, месяц, год)',
         max_length=250,
-        choices = CHOICES
+        choices=CHOICES
     )
     price = models.PositiveIntegerField()
 

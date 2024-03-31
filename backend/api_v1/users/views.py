@@ -1,4 +1,7 @@
-from django.db.models import Sum
+from datetime import date
+from calendar import monthrange
+
+from django.db.models import Sum, F
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from django.http import JsonResponse
@@ -96,10 +99,10 @@ class UserServiceViewSet(UpdateModelMixin, mixins.CreateModelMixin, mixins.ListM
                             type=openapi.TYPE_OBJECT,
                             properties={
                                 'id': openapi.Schema(
-                                 type=openapi.TYPE_STRING
+                                    type=openapi.TYPE_STRING
                                 ),
                                 'logo': openapi.Schema(
-                                 type=openapi.TYPE_STRING
+                                    type=openapi.TYPE_STRING
                                 ),
                                 'service_name': openapi.Schema(
                                     type=openapi.TYPE_STRING
@@ -117,7 +120,7 @@ class UserServiceViewSet(UpdateModelMixin, mixins.CreateModelMixin, mixins.ListM
                                     type=openapi.TYPE_INTEGER
                                 ),
                                 'payment_date': openapi.Schema(
-                                 type=openapi.TYPE_STRING
+                                    type=openapi.TYPE_STRING
                                 ),
                                 'end_date': openapi.Schema(
                                     type=openapi.TYPE_STRING
@@ -205,10 +208,10 @@ class UserHistoryPaymentViewSet(viewsets.ReadOnlyModelViewSet):
                             type=openapi.TYPE_OBJECT,
                             properties={
                                 'id': openapi.Schema(
-                                 type=openapi.TYPE_STRING
+                                    type=openapi.TYPE_STRING
                                 ),
                                 'logo': openapi.Schema(
-                                 type=openapi.TYPE_STRING
+                                    type=openapi.TYPE_STRING
                                 ),
                                 'service_name': openapi.Schema(
                                     type=openapi.TYPE_STRING
@@ -265,6 +268,39 @@ class ExpensesViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         )
         return context
 
+    @swagger_auto_schema(
+        operation_description=(
+            'Возвращает расходы за выбранный период '
+            'за время использования приложения PAY2YOU. '
+            'Период задается параметрами запроса start_date и end_date. '
+        ),
+        manual_parameters=[
+            openapi.Parameter(
+                "start_date",
+                openapi.IN_PATH,
+                description=("Дата начала периода"),
+                type=openapi.TYPE_STRING,
+                required=True,
+            ),
+            openapi.Parameter(
+                "end_date",
+                openapi.IN_PATH,
+                description=("Дата окончания периода"),
+                type=openapi.TYPE_STRING,
+                required=True,
+            )
+        ],
+        responses={
+            status.HTTP_200_OK: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'expenses': openapi.Schema(
+                        type=openapi.TYPE_INTEGER
+                    )
+                }
+            )
+        }
+    )
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         page = self.paginate_queryset(queryset)
@@ -289,6 +325,50 @@ class ExpensesByCategoryViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         )
         return context
 
+    @swagger_auto_schema(
+        operation_description=(
+            'Возвращает расходы за выбранный период, отсортированные по категориям '
+            'за время использования приложения PAY2YOU. '
+            'Период задается параметрами запроса start_date и end_date. '
+        ),
+        manual_parameters=[
+            openapi.Parameter(
+                "start_date",
+                openapi.IN_PATH,
+                description=("Дата начала периода"),
+                type=openapi.TYPE_STRING,
+                required=True,
+            ),
+            openapi.Parameter(
+                "end_date",
+                openapi.IN_PATH,
+                description=("Дата окончания периода"),
+                type=openapi.TYPE_STRING,
+                required=True,
+            )
+        ],
+        responses={
+            status.HTTP_200_OK: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'data': openapi.Schema(
+                        type=openapi.TYPE_ARRAY,
+                        items=openapi.Items(
+                            type=openapi.TYPE_OBJECT,
+                            properties={
+                                'name': openapi.Schema(
+                                    type=openapi.TYPE_STRING
+                                ),
+                                'expenses': openapi.Schema(
+                                    type=openapi.TYPE_INTEGER
+                                )
+                            }
+                        )
+                    )
+                }
+            )
+        }
+    )
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         page = self.paginate_queryset(queryset)
@@ -304,15 +384,56 @@ class ExpensesByCategoryViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 class FutureExpensesViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
     def get_queryset(self):
-        return UserService.objects.filter(
-            user=self.request.user
+        last_day = monthrange(date.today().year, date.today().month)[1]
+        last_current_month_date = date(
+            date.today().year, date.today().month, last_day)
+        queryset = UserService.objects.filter(
+            user=self.request.user,
+            is_active=1,
+            auto_pay=1,
+            end_date__gt=date.today(),
+            end_date__lt=last_current_month_date,
         )
 
+        return queryset
+
+    @swagger_auto_schema(
+        operation_description=(
+            'Возвращает предстоящие затраты пользователя '
+            'на подписки в текущем месяце.  '
+        ),
+        responses={
+            status.HTTP_200_OK: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'future_expenses': openapi.Schema(
+                        type=openapi.TYPE_INTEGER
+                    )
+                }
+            )
+        }
+    )
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(
-            self.get_queryset()
-        ).aggregate(future_expenses=Sum('expense'))
-        return JsonResponse(queryset)
+        expense = {}
+        queryset = self.get_queryset()
+        special_condition_expense = queryset.filter(
+            tariff__tariff_trial_period__tariff_id=F('tariff'),
+            service__trial_period__end_date=F('end_date'),
+            tariff__tariff_special_condition__tariff_id=F('tariff'),
+        )
+        non_special_condition_expense = queryset.difference(
+            special_condition_expense)
+
+        expense = special_condition_expense.aggregate(
+            future_expenses=Sum('tariff__tariff_special_condition__price'))
+        for value in non_special_condition_expense.values(
+            'tariff__tariff_condition__price'
+        ):
+            expense['future_expenses'] = expense.get(
+                'future_expenses', 0) + list(value.values())[0]
+
+        return JsonResponse(expense)
+
 
 class CashbackViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     filter_backends = (DjangoFilterBackend,)
