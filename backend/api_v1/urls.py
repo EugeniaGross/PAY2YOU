@@ -4,6 +4,7 @@ from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from django.conf.urls import url
+from djoser.views import UserViewSet
 
 from .services.views import SevicesViewSet, CategoryImageViewSet, ServiceCategoryImageViewSet, PopularServiceViewSet, TariffViewSet
 from .users.views import CustomTokenObtainPairView, UserServiceViewSet, UserHistoryPaymentViewSet, FutureExpensesViewSet, ExpensesViewSet, ExpensesByCategoryViewSet, CashbackViewSet
@@ -67,7 +68,7 @@ router.register(
 
 urlpatterns = [
     path('login/', CustomTokenObtainPairView.as_view(), name='create_jwt'),
-    path('auth/', include('djoser.urls')),
+    path('registration/', UserViewSet.as_view({'post':'create'}), name='users'),
     path('', include(router.urls))
 ]
 
