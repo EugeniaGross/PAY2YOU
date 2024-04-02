@@ -12,20 +12,8 @@ from services.models import Service, Tariff
 from .managers import CustomUserManager
 
 class User(AbstractUser):
-    username_validator = UnicodeUsernameValidator()
-    username = models.CharField(
-        _("username"),
-        max_length=150,
-        blank=True,
-        unique=True,
-        help_text=_(
-            "Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only."
-        ),
-        validators=[username_validator],
-        error_messages={
-            "unique": _("A user with that username already exists."),
-        },
-    )
+    username_validator = None
+    username = None
     email = models.EmailField(_("email address"), unique=True)
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
