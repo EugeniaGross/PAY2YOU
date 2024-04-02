@@ -6,10 +6,14 @@ from django.contrib.auth.models import update_last_login
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.settings import api_settings
+from services.models import TariffSpecialCondition, TariffTrialPeriod
+from users.models import UserService, UserSpecialCondition, UserTrialPeriod
 
-from services.models import TariffTrialPeriod, TariffSpecialCondition
-from users.models import UserService, UserTrialPeriod, UserSpecialCondition
-from ..utils import get_tariff_condition, get_days, get_full_name_period, get_past_expenses_category
+from ..utils import (
+    get_days, get_full_name_period,
+    get_past_expenses_category,
+    get_tariff_condition
+)
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):

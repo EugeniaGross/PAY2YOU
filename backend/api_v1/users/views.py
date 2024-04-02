@@ -1,34 +1,29 @@
-from datetime import date
 from calendar import monthrange
+from datetime import date
 
-from django.db.models import Sum, F
-from rest_framework.response import Response
-from django_filters.rest_framework import DjangoFilterBackend
+from django.db.models import F, Sum
 from django.http import JsonResponse
-from rest_framework import filters
-from rest_framework import mixins
-from rest_framework import viewsets
-from drf_yasg.utils import swagger_auto_schema
+from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg import openapi
-from rest_framework import status
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import filters, mixins, status, viewsets
 from rest_framework.request import Request
+from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
-
 from users.models import UserService
 
+from ..filters import UserServiceDateFilter, UserServiceFilter
+from ..mixins import UpdateModelMixin
+from ..pagination import ServicePagination
 from .serializers import (
+    CustomTokenObtainPairSerializer,
+    ExpensesByCategorySerializer, ExpensesSerializer,
+    UserHistoryPaymentSerializer,
     UserServiceCreateSerialiser,
     UserServiceListSerializer,
     UserServiceRetrieveSerializer,
-    UserHistoryPaymentSerializer,
-    UserServiceUpdateSerialiser,
-    ExpensesByCategorySerializer,
-    CustomTokenObtainPairSerializer,
-    ExpensesSerializer
+    UserServiceUpdateSerialiser
 )
-from ..filters import UserServiceFilter, UserServiceDateFilter
-from ..mixins import UpdateModelMixin
-from ..pagination import ServicePagination
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):

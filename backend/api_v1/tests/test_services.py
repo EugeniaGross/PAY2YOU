@@ -1,12 +1,14 @@
 from django.urls import reverse
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED
 from rest_framework.test import APITestCase
-from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.test import APIClient
 
 from services.models import Service, CategoryService, CategoryImage, ServiceCategoryImage, Tariff, TariffCondition
+
+User = get_user_model()
 
 
 class ServiceTest(APITestCase):
@@ -51,8 +53,8 @@ class ServiceTest(APITestCase):
             price=200
         )
         self.user = User.objects.create_user(
-            username='testuser',
-            password='testpass'
+            email='testemail@mail.com',
+            password='testpassword'
         )
         self.auth_client = APIClient()
         self.token = RefreshToken.for_user(self.user).access_token
@@ -124,7 +126,8 @@ class ServiceTest(APITestCase):
         self.assertIn('name', response['data'][0])
 
     def test_service_category_images(self):
-        url = reverse('images-list', args=(self.services[0].pk, self.category_image.pk))
+        url = reverse(
+            'images-list', args=(self.services[0].pk, self.category_image.pk))
         response = self.auth_client.get(url).json()
         self.assertIn('data', response)
         self.assertIn('next', response)
@@ -144,7 +147,8 @@ class ServiceTest(APITestCase):
         self.assertIn('description', response['data'][0])
 
     def test_tariffs_detail(self):
-        url = reverse('tariffs-detail', args=(self.services[0].pk, self.tariff.pk))
+        url = reverse('tariffs-detail',
+                      args=(self.services[0].pk, self.tariff.pk))
         response = self.auth_client.get(url).json()
         self.assertIn('trial_period', response)
         self.assertIn('special_condition', response)
@@ -152,6 +156,8 @@ class ServiceTest(APITestCase):
         self.assertEqual(response['id'], str(self.tariff.id))
         self.assertEqual(response['name'], self.tariff.name)
         self.assertEqual(response['description'], self.tariff.description)
-        self.assertEqual(response['condition']['count'], self.tariff.tariff_condition.count)
+        self.assertEqual(response['condition']['count'],
+                         self.tariff.tariff_condition.count)
         self.assertEqual(response['condition']['period'], 'Месяц')
-        self.assertEqual(response['condition']['price'], self.tariff.tariff_condition.price)
+        self.assertEqual(response['condition']['price'],
+                         self.tariff.tariff_condition.price)
