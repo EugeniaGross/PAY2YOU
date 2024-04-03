@@ -1,15 +1,20 @@
 from datetime import datetime, timedelta
-from math import floor
 from re import search
 
 from django.contrib.auth.models import update_last_login
+from django.urls import reverse
+from requests import post
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.settings import api_settings
 
-from services.models import TariffTrialPeriod, TariffSpecialCondition
-from users.models import UserService, UserTrialPeriod, UserSpecialCondition
-from ..utils import get_tariff_condition, get_days, get_full_name_period, get_past_expenses_category
+from services.models import TariffSpecialCondition, TariffTrialPeriod
+from users.models import UserService, UserSpecialCondition, UserTrialPeriod
+
+from ..exeptions import PaymentError
+from ..utils import (connect_special_condition, create_subscribe, get_days,
+                     get_full_name_period, get_past_expenses_category,
+                     get_tariff_condition)
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -65,7 +70,7 @@ class UserServiceRetrieveSerializer(serializers.ModelSerializer):
         return ''
 
     def get_payment_date(self, obj):
-        if obj.end_date >= datetime.now().date() and obj.auto_pay == True:
+        if obj.end_date >= datetime.now().date() and obj.auto_pay:
             return obj.end_date + timedelta(days=1)
         return ''
 
@@ -93,9 +98,9 @@ class UserServiceListSerializer(UserServiceRetrieveSerializer):
         )
 
     def get_is_active(self, obj):
-        if obj.is_active == True and obj.auto_pay == True:
+        if obj.is_active and obj.auto_pay:
             return 1
-        if obj.is_active == False and obj.auto_pay == False:
+        if not obj.is_active and not obj.auto_pay:
             return 0
         return 3
 
@@ -140,6 +145,7 @@ class UserServiceCreateSerialiser(serializers.ModelSerializer):
         return super().validate(attrs)
 
     def create(self, validated_data):
+        url = reverse('payment')
         if (TariffTrialPeriod.objects.filter(
                 tariff=validated_data['tariff']
             ).exists()
@@ -148,6 +154,15 @@ class UserServiceCreateSerialiser(serializers.ModelSerializer):
                 service=validated_data['tariff'].service
         ).exists()
         ):
+            response = post(
+                url,
+                data={
+                    'user': self.context['request'].user,
+                    'price': validated_data['tariff'].tariff_trial_period.price
+                }
+            )
+            if response.status_code != 200:
+                raise PaymentError
             days = get_days(validated_data['tariff'].tariff_trial_period)
             user_service = UserService.objects.create(
                 user=self.context['request'].user,
@@ -169,49 +184,44 @@ class UserServiceCreateSerialiser(serializers.ModelSerializer):
                 end_date=datetime.now().date() + timedelta(days=days)
             )
             return user_service
-        if (TariffSpecialCondition.objects.filter(
-                tariff=validated_data['tariff']
-            ).exists()
+        if TariffSpecialCondition.objects.filter(
+            tariff=validated_data['tariff']
+        ).exists()\
             and not UserSpecialCondition.objects.filter(
                 user=self.context['request'].user,
                 tariff=validated_data['tariff']
-        ).exists()
-        ):
-            days = get_days(validated_data['tariff'].tariff_special_condition)
-            user_service = UserService.objects.create(
+        ).exists():
+            price = validated_data['tariff'].tariff_special_condition.price
+            response = post(
+                url,
+                data={
+                    'user': self.context['request'].user,
+                    'price': price
+                }
+            )
+            if response.status_code != 200:
+                raise PaymentError
+            days = get_days(object.tariff_special_condition)
+            return connect_special_condition(
+                object=validated_data['tariff'],
+                days=days,
                 user=self.context['request'].user,
-                service=validated_data['tariff'].service,
-                tariff=validated_data['tariff'],
-                start_date=datetime.now().date(),
-                end_date=datetime.now().date() + timedelta(days=days),
-                expense=validated_data['tariff'].tariff_special_condition.price,
-                cashback=0,
-                is_active=True,
-                auto_pay=True,
-                status_cashback=False,
                 phone_number=validated_data['phone_number']
             )
-            UserSpecialCondition.objects.create(
-                user=self.context['request'].user,
-                tariff=validated_data['tariff'],
-                start_date=datetime.now().date(),
-                end_date=datetime.now().date() + timedelta(days=days)
-            )
-            return user_service
+        response = post(
+            url,
+            data={
+                'user': self.context['request'].user,
+                'price': validated_data['tariff'].tariff_condition.price
+            }
+        )
+        if response.status_code != 200:
+            raise PaymentError
         days = get_days(validated_data['tariff'].tariff_condition)
-        price = validated_data['tariff'].tariff_condition.price
-        cashback = validated_data['tariff'].service.cashback
-        return UserService.objects.create(
+        return create_subscribe(
+            object=validated_data['tariff'],
+            days=days,
             user=self.context['request'].user,
-            service=validated_data['tariff'].service,
-            tariff=validated_data['tariff'],
-            start_date=datetime.now().date(),
-            end_date=datetime.now().date() + timedelta(days=days),
-            expense=validated_data['tariff'].tariff_condition.price,
-            cashback=floor(price * cashback / 100),
-            is_active=True,
-            auto_pay=True,
-            status_cashback=False,
             phone_number=validated_data['phone_number']
         )
 
@@ -231,7 +241,7 @@ class UserServiceUpdateSerialiser(serializers.ModelSerializer):
         )
 
     def validate(self, attrs):
-        if (attrs['auto_pay'] == True
+        if (attrs['auto_pay']
             and UserService.objects.filter(
                 user=self.context['request'].user,
                 tariff=self.instance.tariff,
@@ -245,50 +255,48 @@ class UserServiceUpdateSerialiser(serializers.ModelSerializer):
         return super().validate(attrs)
 
     def update(self, instance, validated_data):
-        if instance.end_date < datetime.now().date() and validated_data['auto_pay'] == True:
-            if (TariffSpecialCondition.objects.filter(
-                    tariff=instance.tariff
-                ).exists()
+        if instance.end_date < datetime.now().date()\
+           and validated_data['auto_pay']:
+            url = reverse('payment')
+            if TariffSpecialCondition.objects.filter(
+                tariff=instance.tariff
+            ).exists()\
                 and not UserSpecialCondition.objects.filter(
                     user=self.context['request'].user,
                     tariff=instance.tariff
-            ).exists()
-            ):
+            ).exists():
+                price = validated_data['tariff'].tariff_special_condition.price
+                response = post(
+                    url,
+                    data={
+                        'user': self.context['request'].user,
+                        'price': price
+                    }
+                )
+                if response.status_code != 200:
+                    raise PaymentError
                 days = get_days(instance.tariff.tariff_special_condition)
-                instance = UserService.objects.create(
-                    user=self.instance.user,
-                    service=instance.service,
-                    tariff=instance.tariff,
-                    start_date=datetime.now().date(),
-                    end_date=datetime.now().date() + timedelta(days=days),
-                    expense=instance.tariff.tariff_special_condition.price,
-                    cashback=0,
-                    is_active=True,
-                    auto_pay=True,
-                    status_cashback=False,
+                return connect_special_condition(
+                    object=instance.tariff,
+                    days=days,
+                    user=instance.user,
                     phone_number=instance.phone_number
                 )
-                UserSpecialCondition.objects.create(
-                    user=self.context['request'].user,
-                    tariff=instance.tariff,
-                    start_date=datetime.now().date(),
-                    end_date=datetime.now().date() + timedelta(days=days)
-                )
-                return instance
+            price = validated_data['tariff'].tariff_condition.price
+            response = post(
+                url,
+                data={
+                    'user': self.context['request'].user,
+                    'price': price
+                }
+            )
+            if response.status_code != 200:
+                raise PaymentError
             days = get_days(instance.tariff.tariff_condition)
-            price = instance.tariff.tariff_condition.price
-            cashback = instance.tariff.service.cashback
-            return UserService.objects.create(
+            return create_subscribe(
+                object=instance.tariff,
+                days=days,
                 user=instance.user,
-                service=instance.tariff.service,
-                tariff=instance.tariff,
-                start_date=datetime.now().date(),
-                end_date=datetime.now().date() + timedelta(days=days),
-                expense=instance.tariff.tariff_condition.price,
-                cashback=floor(price * cashback / 100),
-                is_active=True,
-                auto_pay=True,
-                status_cashback=False,
                 phone_number=instance.phone_number
             )
         return super().update(instance, validated_data)

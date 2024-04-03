@@ -1,34 +1,28 @@
-from datetime import date
 from calendar import monthrange
+from datetime import date
 
-from django.db.models import Sum, F
-from rest_framework.response import Response
-from django_filters.rest_framework import DjangoFilterBackend
+from django.db.models import F, Sum
 from django.http import JsonResponse
-from rest_framework import filters
-from rest_framework import mixins
-from rest_framework import viewsets
-from drf_yasg.utils import swagger_auto_schema
+from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg import openapi
-from rest_framework import status
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import filters, mixins, status, viewsets
 from rest_framework.request import Request
+from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from users.models import UserService
 
-from .serializers import (
-    UserServiceCreateSerialiser,
-    UserServiceListSerializer,
-    UserServiceRetrieveSerializer,
-    UserHistoryPaymentSerializer,
-    UserServiceUpdateSerialiser,
-    ExpensesByCategorySerializer,
-    CustomTokenObtainPairSerializer,
-    ExpensesSerializer
-)
-from ..filters import UserServiceFilter, UserServiceDateFilter
+from ..filters import UserServiceDateFilter, UserServiceFilter
 from ..mixins import UpdateModelMixin
 from ..pagination import ServicePagination
+from .serializers import (CustomTokenObtainPairSerializer,
+                          ExpensesByCategorySerializer, ExpensesSerializer,
+                          UserHistoryPaymentSerializer,
+                          UserServiceCreateSerialiser,
+                          UserServiceListSerializer,
+                          UserServiceRetrieveSerializer,
+                          UserServiceUpdateSerialiser)
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -63,7 +57,13 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         return super().post(request, *args, **kwargs)
 
 
-class UserServiceViewSet(UpdateModelMixin, mixins.CreateModelMixin, mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+class UserServiceViewSet(
+    UpdateModelMixin,
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    viewsets.GenericViewSet
+):
     pagination_class = ServicePagination
     filter_backends = (DjangoFilterBackend, )
     filterset_class = UserServiceFilter
@@ -313,7 +313,10 @@ class ExpensesViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         return Response(serializer.data)
 
 
-class ExpensesByCategoryViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+class ExpensesByCategoryViewSet(
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet
+):
     serializer_class = ExpensesByCategorySerializer
     queryset = UserService.objects.all()
 
@@ -327,8 +330,8 @@ class ExpensesByCategoryViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
     @swagger_auto_schema(
         operation_description=(
-            'Возвращает расходы за выбранный период, отсортированные по категориям '
-            'за время использования приложения PAY2YOU. '
+            'Возвращает расходы за выбранный период, отсортированные '
+            'по категориям за время использования приложения PAY2YOU. '
             'Период задается параметрами запроса start_date и end_date. '
         ),
         manual_parameters=[

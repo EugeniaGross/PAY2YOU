@@ -1,6 +1,8 @@
 from django.contrib import admin
 
-from .models import Service, CategoryImage, ServiceCategoryImage, CategoryService, Tariff, TariffSpecialCondition, TariffCondition, TariffTrialPeriod
+from .models import (CategoryImage, CategoryService, Service,
+                     ServiceCategoryImage, Tariff, TariffCondition,
+                     TariffSpecialCondition, TariffTrialPeriod)
 
 
 @admin.register(Service)

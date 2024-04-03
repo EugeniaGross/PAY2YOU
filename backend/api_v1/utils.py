@@ -1,9 +1,9 @@
-from datetime import datetime
+from datetime import datetime, timedelta
+from math import floor
 
-from django.db.models import Sum
-from django.db.models import F
+from django.db.models import F, Sum
 
-from users.models import UserTrialPeriod, UserSpecialCondition, UserService
+from users.models import UserService, UserSpecialCondition, UserTrialPeriod
 
 
 def get_tariff_condition(obj, user):
@@ -74,3 +74,45 @@ def get_full_name_period(count, period):
             return 'Месяцев'
         if period == 'Y':
             return 'Лет'
+
+
+def connect_special_condition(object, days, user=None, phone_number=None):
+    user_service = UserService.objects.create(
+        user=user,
+        service=object.service,
+        tariff=object,
+        start_date=datetime.now().date(),
+        end_date=datetime.now().date() + timedelta(days=days),
+        expense=object.tariff_special_condition.price,
+        cashback=0,
+        is_active=True,
+        auto_pay=True,
+        status_cashback=False,
+        phone_number=phone_number
+    )
+    UserSpecialCondition.objects.create(
+        user=user,
+        tariff=object,
+        start_date=datetime.now().date(),
+        end_date=datetime.now().date() + timedelta(days=days)
+    )
+    return user_service
+
+
+def create_subscribe(object, days, user, phone_number):
+    price = object.tariff_condition.price
+    cashback = object.service.cashback
+    subscribe = UserService.objects.create(
+        user=user,
+        service=object.service,
+        tariff=object,
+        start_date=datetime.now().date(),
+        end_date=datetime.now().date() + timedelta(days=days),
+        expense=object.tariff_condition.price,
+        cashback=floor(price * cashback / 100),
+        is_active=True,
+        auto_pay=True,
+        status_cashback=False,
+        phone_number=phone_number
+    )
+    return subscribe

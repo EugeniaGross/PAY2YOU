@@ -1,23 +1,17 @@
 from django.db.models import Count
 from django.shortcuts import get_object_or_404
-from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
-from rest_framework import viewsets
-from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from rest_framework import status
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import status, viewsets
+from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 
 from services.models import Service
 
 from ..pagination import ServicePagination
-from .serializers import (
-    ServiceListSerializer,
-    CategoryImageSerializer,
-    ServiceCategoryImageSerializer,
-    PopularServiceSerialiser,
-    ServiceRetrieveSerializer,
-    TariffListSerializer,
-    TariffRetrieveSerializer,
-)
+from .serializers import (CategoryImageSerializer, PopularServiceSerialiser,
+                          ServiceCategoryImageSerializer,
+                          ServiceListSerializer, ServiceRetrieveSerializer,
+                          TariffListSerializer, TariffRetrieveSerializer)
 
 
 class ServiceParentViewSet(ListModelMixin, viewsets.GenericViewSet):

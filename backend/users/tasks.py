@@ -1,9 +1,14 @@
+from datetime import datetime
+
+from django.urls import reverse
+from requests import post
+
+from api_v1.exeptions import CashbackError, PaymentError
+from api_v1.utils import connect_special_condition, create_subscribe, get_days
 from backend.celery import app
-from .models import UserService, UserTrialPeriod, UserSpecialCondition
 from services.models import TariffSpecialCondition
-from datetime import datetime, timedelta
-from api_v1.utils import get_days
-from math import floor
+
+from .models import UserService, UserTrialPeriod
 
 
 @app.task
@@ -15,6 +20,16 @@ def cashback_accrual():
         start_date__month=month
     )
     for subscription in subscriptions:
+        url = reverse('cashback_accrual')
+        response = post(
+            url,
+            data={
+                'user': subscription.user,
+                'price': subscription.cashback
+            }
+        )
+        if response.status_code != 200:
+            raise CashbackError
         subscription.status_cashback = True
         subscription.save()
 
@@ -27,56 +42,53 @@ def create_autopay():
     )
     for subscription in subscriptions:
         if subscription.end_date < datetime.now().date():
-            if (UserTrialPeriod.objects.filter(
-                    user=subscription.user,
-                    service=subscription.service
-                ).exists()
+            url = reverse('payment')
+            if UserTrialPeriod.objects.filter(
+                user=subscription.user,
+                service=subscription.service
+            ).exists()\
                 and UserTrialPeriod.objects.get(
                     user=subscription.user,
                     service=subscription.service
-                ).end_date == subscription.end_date
+                ).end_date == subscription.end_date\
                 and TariffSpecialCondition.objects.filter(
                     tariff=subscription.tariff
-                ).exists()
-            ):
-                subscription.is_active=False
+            ).exists():
+                price = subscription.tariff.tariff_special_condition.price
+                response = post(
+                    url,
+                    data={
+                        'user': subscription.user,
+                        'price': price
+                    }
+                )
+                if response.status_code != 200:
+                    raise PaymentError
+                subscription.is_active = False
                 subscription.save()
                 days = get_days(subscription.tariff.tariff_special_condition)
-                UserService.objects.create(
+                connect_special_condition(
+                    object=subscription.tariff,
+                    days=days,
                     user=subscription.user,
-                    service=subscription.service,
-                    tariff=subscription.tariff,
-                    start_date=datetime.now().date(),
-                    end_date=datetime.now().date() + timedelta(days=days),
-                    expense=subscription.tariff.tariff_special_condition.price,
-                    cashback=0,
-                    is_active=True,
-                    auto_pay=True,
-                    status_cashback=False,
                     phone_number=subscription.phone_number
                 )
-                UserSpecialCondition.objects.create(
-                    user=subscription.user,
-                    tariff=subscription.tariff,
-                    start_date=datetime.now().date(),
-                    end_date=datetime.now().date() + timedelta(days=days)
-                )
             else:
-                subscription.is_active=False
+                response = post(
+                    url,
+                    data={
+                        'user': subscription.user,
+                        'price': subscription.tariff.tariff_condition.price
+                    }
+                )
+                if response.status_code != 200:
+                    raise PaymentError
+                subscription.is_active = False
                 subscription.save()
                 days = get_days(subscription.tariff.tariff_condition)
-                price = subscription.tariff.tariff_condition.price
-                cashback = subscription.tariff.service.cashback
-                UserService.objects.create(
+                create_subscribe(
+                    object=subscription.tariff,
+                    days=days,
                     user=subscription.user,
-                    service=subscription.tariff.service,
-                    tariff=subscription.tariff,
-                    start_date=datetime.now().date(),
-                    end_date=datetime.now().date() + timedelta(days=days),
-                    expense=subscription.tariff.tariff_condition.price,
-                    cashback=floor(price * cashback / 100),
-                    is_active=True,
-                    auto_pay=True,
-                    status_cashback=False,
                     phone_number=subscription.phone_number
                 )

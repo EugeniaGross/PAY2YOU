@@ -1,13 +1,19 @@
-from django.urls import include, path
-from rest_framework.routers import SimpleRouter
-from rest_framework import permissions
-from drf_yasg.views import get_schema_view
-from drf_yasg import openapi
 from django.conf.urls import url
+from django.urls import include, path
 from djoser.views import UserViewSet
+from drf_yasg import openapi
+from drf_yasg.views import get_schema_view
+from rest_framework import permissions
+from rest_framework.routers import SimpleRouter
 
-from .services.views import SevicesViewSet, CategoryImageViewSet, ServiceCategoryImageViewSet, PopularServiceViewSet, TariffViewSet
-from .users.views import CustomTokenObtainPairView, UserServiceViewSet, UserHistoryPaymentViewSet, FutureExpensesViewSet, ExpensesViewSet, ExpensesByCategoryViewSet, CashbackViewSet
+from .services.views import (CategoryImageViewSet, PopularServiceViewSet,
+                             ServiceCategoryImageViewSet, SevicesViewSet,
+                             TariffViewSet)
+from .users.views import (CashbackViewSet, CustomTokenObtainPairView,
+                          ExpensesByCategoryViewSet, ExpensesViewSet,
+                          FutureExpensesViewSet, UserHistoryPaymentViewSet,
+                          UserServiceViewSet)
+
 router = SimpleRouter()
 
 router.register(
@@ -21,7 +27,8 @@ router.register(
     basename='image-categories'
 )
 router.register(
-    r'services/(?P<service_id>[a-z\d-]+)/image-categories/(?P<category_id>[a-z\d-]+)/images',
+    r'services/(?P<service_id>[a-z\d-]+)'
+    r'/image-categories/(?P<category_id>[a-z\d-]+)/images',
     ServiceCategoryImageViewSet,
     basename='images'
 )
@@ -67,9 +74,20 @@ router.register(
 )
 
 urlpatterns = [
-    path('login/', CustomTokenObtainPairView.as_view(), name='create_jwt'),
-    path('registration/', UserViewSet.as_view({'post':'create'}), name='users'),
-    path('', include(router.urls))
+    path(
+        'login/',
+        CustomTokenObtainPairView.as_view(),
+        name='create_jwt'
+    ),
+    path(
+        'registration/',
+        UserViewSet.as_view({'post': 'create'}),
+        name='users'
+    ),
+    path(
+        '',
+        include(router.urls)
+    )
 ]
 
 schema_view = get_schema_view(

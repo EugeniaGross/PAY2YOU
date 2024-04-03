@@ -1,7 +1,6 @@
 import uuid
 
 from django.contrib.auth.models import AbstractUser
-from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.db import models
@@ -10,6 +9,7 @@ from django.utils.translation import gettext_lazy as _
 from services.models import Service, Tariff
 
 from .managers import CustomUserManager
+
 
 class User(AbstractUser):
     username_validator = None
@@ -135,7 +135,8 @@ class UserTrialPeriod(models.Model):
             ValidationError(
                 {
                     'start_date': _(
-                        'Дата начала пробного периода не может быть больше даты конца'
+                        'Дата начала пробного периода '
+                        'не может быть больше даты конца'
                     )
                 }
             )
@@ -183,7 +184,8 @@ class UserSpecialCondition(models.Model):
             ValidationError(
                 {
                     'start_date': _(
-                        'Дата начала специального условия не может быть больше даты конца'
+                        'Дата начала специального условия '
+                        'не может быть больше даты конца'
                     )
                 }
             )

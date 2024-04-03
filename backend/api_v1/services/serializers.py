@@ -1,8 +1,10 @@
 from rest_framework import serializers
 
-from ..utils import get_full_name_period
+from services.models import (CategoryImage, Service, ServiceCategoryImage,
+                             Tariff, TariffCondition, TariffSpecialCondition,
+                             TariffTrialPeriod)
 
-from services.models import Service, ServiceCategoryImage, CategoryImage, Tariff, TariffCondition, TariffSpecialCondition, TariffTrialPeriod
+from ..utils import get_full_name_period
 
 
 class ServiceListSerializer(serializers.ModelSerializer):
@@ -61,6 +63,7 @@ class PopularServiceSerialiser(serializers.ModelSerializer):
         source='image_logo_popular',
         use_url=True
     )
+
     class Meta:
         model = Service
         fields = (
@@ -73,8 +76,8 @@ class PopularServiceSerialiser(serializers.ModelSerializer):
 class TariffListSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model=Tariff
-        fields=(
+        model = Tariff
+        fields = (
             'id',
             'name',
             'description'
@@ -87,8 +90,8 @@ class TariffRetrieveSerializer(serializers.ModelSerializer):
     trial_period = serializers.SerializerMethodField()
 
     class Meta:
-        model=Tariff
-        fields=(
+        model = Tariff
+        fields = (
             'id',
             'name',
             'description',
@@ -102,26 +105,24 @@ class TariffRetrieveSerializer(serializers.ModelSerializer):
             obj.tariff_condition
         ).data
 
-
     def get_special_condition(self, obj):
-        if (TariffSpecialCondition.objects.filter(
-                tariff=obj
-            ).exists()
-        ):
+        if TariffSpecialCondition.objects.filter(
+            tariff=obj
+        ).exists():
             return TariffSpecialConditionSerializer(
                 obj.tariff_special_condition
             ).data
         return {}
 
     def get_trial_period(self, obj):
-        if (TariffTrialPeriod.objects.filter(
-                tariff=obj
-            ).exists()
-        ):
+        if TariffTrialPeriod.objects.filter(
+            tariff=obj
+        ).exists():
             return TariffTrialPeriodSerializer(
                 obj.tariff_trial_period
             ).data
         return {}
+
 
 class TariffConditionSerializer(serializers.ModelSerializer):
     period = serializers.SerializerMethodField()
