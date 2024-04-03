@@ -1,0 +1,31 @@
+version: '3.3'
+volumes:
+  media_volume:
+services:
+  
+  db:
+    image: postgres:13.10 
+    env_file: .env
+    volumes:
+      - pg_data_production:/var/lib/postgresql/data/
+
+  backend:
+    image: s0rath/backend
+    env_file: .env
+    restart: always
+    depends_on:
+      - db
+    volumes:
+      - media_volume:/app/media/
+  
+  nginx:
+    image: s0rath/gateway
+    restart: always 
+    env_file: .env
+    ports:
+     - 8000:80
+    depends_on:     
+     - backend
+    volumes:
+      - media_volume:/media/
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
