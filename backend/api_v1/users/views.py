@@ -51,7 +51,8 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                         type=openapi.TYPE_STRING
                     )
                 }
-            )
+            ),
+            status.HTTP_401_UNAUTHORIZED: "UNAUTHORIZED"
         }
     )
     def post(self, request: Request, *args, **kwargs):
@@ -143,9 +144,9 @@ class UserServiceViewSet(
                         type=openapi.TYPE_STRING
                     )
                 }
-            )
+            ),
+            status.HTTP_401_UNAUTHORIZED: "UNAUTHORIZED",
         }
-
     )
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
@@ -153,7 +154,11 @@ class UserServiceViewSet(
     @swagger_auto_schema(
         operation_description=(
             'Возвращает информацию о подписке пользователя. '
-        )
+        ),
+        responses={
+            status.HTTP_401_UNAUTHORIZED: "UNAUTHORIZED",
+            status.HTTP_404_NOT_FOUND: "NOT_FOUND"
+        }
     )
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
@@ -166,7 +171,12 @@ class UserServiceViewSet(
             'подключить этот тариф только один раз. При отключении '
             'подписки он сможет ее возобновить.'
         ),
-        responses={status.HTTP_200_OK: UserServiceRetrieveSerializer}
+        responses={
+            status.HTTP_200_OK: UserServiceRetrieveSerializer,
+            status.HTTP_400_BAD_REQUEST: "BAD_REQUEST",
+            status.HTTP_401_UNAUTHORIZED: "UNAUTHORIZED",
+            status.HTTP_404_NOT_FOUND: "NOT_FOUND"
+        }
     )
     def create(self, request, *args, **kwargs):
         return super().create(request, *args, **kwargs)
@@ -178,7 +188,12 @@ class UserServiceViewSet(
             'auto_pay=False. Если при возобновлении срок действия подписки '
             'окончен, создается новый экземпляр подписки.'
         ),
-        responses={status.HTTP_200_OK: UserServiceRetrieveSerializer}
+        responses={status.HTTP_200_OK: UserServiceRetrieveSerializer,
+                   status.HTTP_400_BAD_REQUEST: "BAD_REQUEST",
+                   status.HTTP_401_UNAUTHORIZED: "UNAUTHORIZED",
+                   status.HTTP_403_FORBIDDEN: "FORBIDDEN",
+                   status.HTTP_404_NOT_FOUND: "NOT_FOUND"
+                   }
     )
     def partial_update(self, request, *args, **kwargs):
         return super().partial_update(request, *args, **kwargs)
@@ -300,7 +315,9 @@ class ExpensesViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
                         type=openapi.TYPE_INTEGER
                     )
                 }
-            )
+            ),
+            status.HTTP_401_UNAUTHORIZED: "UNAUTHORIZED",
+            status.HTTP_404_NOT_FOUND: "NOT_FOUND"
         }
     )
     def list(self, request, *args, **kwargs):
@@ -371,7 +388,8 @@ class ExpensesByCategoryViewSet(
                         )
                     )
                 }
-            )
+            ),
+            status.HTTP_401_UNAUTHORIZED: "UNAUTHORIZED"
         }
     )
     def list(self, request, *args, **kwargs):
@@ -415,7 +433,9 @@ class FutureExpensesViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
                         type=openapi.TYPE_INTEGER
                     )
                 }
-            )
+            ),
+            status.HTTP_401_UNAUTHORIZED: "UNAUTHORIZED",
+            status.HTTP_404_NOT_FOUND: "NOT_FOUND"
         }
     )
     def list(self, request, *args, **kwargs):
@@ -464,7 +484,9 @@ class CashbackViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
                         type=openapi.TYPE_INTEGER
                     )
                 }
-            )
+            ),
+            status.HTTP_401_UNAUTHORIZED: "UNAUTHORIZED",
+            status.HTTP_404_NOT_FOUND: "NOT_FOUND"
         }
     )
     def list(self, request, *args, **kwargs):
