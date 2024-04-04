@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from re import search
 
 from django.contrib.auth.models import update_last_login
-from django.urls import reverse
+from rest_framework.reverse import reverse
 from requests import post
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -145,7 +145,7 @@ class UserServiceCreateSerialiser(serializers.ModelSerializer):
         return super().validate(attrs)
 
     def create(self, validated_data):
-        url = reverse('payment')
+        url = reverse('bank:payment', request=self.context['request'])
         if (TariffTrialPeriod.objects.filter(
                 tariff=validated_data['tariff']
             ).exists()
@@ -201,7 +201,7 @@ class UserServiceCreateSerialiser(serializers.ModelSerializer):
             )
             if response.status_code != 200:
                 raise PaymentError
-            days = get_days(object.tariff_special_condition)
+            days = get_days(validated_data['tariff'].tariff_special_condition)
             return connect_special_condition(
                 object=validated_data['tariff'],
                 days=days,
@@ -257,7 +257,7 @@ class UserServiceUpdateSerialiser(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         if instance.end_date < datetime.now().date()\
            and validated_data['auto_pay']:
-            url = reverse('payment')
+            url = reverse('bank:payment', request=self.context['request'])
             if TariffSpecialCondition.objects.filter(
                 tariff=instance.tariff
             ).exists()\

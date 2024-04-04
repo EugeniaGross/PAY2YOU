@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from django.conf import settings
 from django.urls import reverse
 from requests import post
 
@@ -11,6 +12,12 @@ from services.models import TariffSpecialCondition
 from .models import UserService, UserTrialPeriod
 
 
+def get_full_url(path):
+    if settings.DEBUG:
+        return f'http://127.0.0.1:8000/{path}'
+    return f'{settings.SITE_URL}{path}'
+
+
 @app.task
 def cashback_accrual():
     month = datetime.now().month - 1
@@ -20,7 +27,7 @@ def cashback_accrual():
         start_date__month=month
     )
     for subscription in subscriptions:
-        url = reverse('cashback_accrual')
+        url = get_full_url('cashback_accrual/')
         response = post(
             url,
             data={
@@ -40,9 +47,9 @@ def create_autopay():
         is_active=True,
         auto_pay=True
     )
+    url = get_full_url('payment/')
     for subscription in subscriptions:
         if subscription.end_date < datetime.now().date():
-            url = reverse('payment')
             if UserTrialPeriod.objects.filter(
                 user=subscription.user,
                 service=subscription.service
@@ -92,3 +99,4 @@ def create_autopay():
                     user=subscription.user,
                     phone_number=subscription.phone_number
                 )
+    return url

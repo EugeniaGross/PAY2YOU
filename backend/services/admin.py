@@ -27,7 +27,7 @@ class CategoryServiceAdmin(admin.ModelAdmin):
 
 @admin.register(Tariff)
 class TariffAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('id', )
 
 
 @admin.register(TariffSpecialCondition)

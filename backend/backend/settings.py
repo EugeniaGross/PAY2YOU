@@ -16,6 +16,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     'rest_framework',
     'djoser',
     'django_filters',
@@ -87,6 +88,8 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
+
+SITE_URL = 'http://google.com/'
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'static'

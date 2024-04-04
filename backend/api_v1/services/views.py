@@ -1,13 +1,13 @@
 from django.db.models import Count
 from django.shortcuts import get_object_or_404
-from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import status, viewsets
+from rest_framework import viewsets
 from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 
 from services.models import Service
 
 from ..pagination import ServicePagination
+from ..response_shema import response_schema_dict_tariff_detail, response_schema_dict_image_categories_list,response_schema_dict_popular_services_list,response_schema_dict_service_detail,response_schema_dict_service_image_categories_list,response_schema_dict_services_list,response_schema_dict_tariffs_list
 from .serializers import (CategoryImageSerializer, PopularServiceSerialiser,
                           ServiceCategoryImageSerializer,
                           ServiceListSerializer, ServiceRetrieveSerializer,
@@ -30,39 +30,7 @@ class SevicesViewSet(RetrieveModelMixin, ServiceParentViewSet):
         operation_description=(
             'Список сервисов '
         ),
-        responses={
-            status.HTTP_201_CREATED: openapi.Schema(
-                type=openapi.TYPE_OBJECT,
-                properties={
-                    'data': openapi.Schema(
-                        type=openapi.TYPE_ARRAY,
-                        items=openapi.Items(
-                            type=openapi.TYPE_OBJECT,
-                            properties={
-                                'id': openapi.Schema(
-                                 type=openapi.TYPE_STRING
-                                ),
-                                'logo': openapi.Schema(
-                                 type=openapi.TYPE_STRING
-                                ),
-                                'name': openapi.Schema(
-                                    type=openapi.TYPE_STRING
-                                ),
-                                'cashback': openapi.Schema(
-                                    type=openapi.TYPE_INTEGER
-                                )
-                            }
-                        )
-                    ),
-                    'next': openapi.Schema(
-                        type=openapi.TYPE_STRING
-                    ),
-                    'previous': openapi.Schema(
-                        type=openapi.TYPE_STRING
-                    )
-                }
-            )
-        }
+        responses=response_schema_dict_services_list
     )
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
@@ -70,7 +38,8 @@ class SevicesViewSet(RetrieveModelMixin, ServiceParentViewSet):
     @swagger_auto_schema(
         operation_description=(
             'Информация о сервисе '
-        )
+        ),
+        responses=response_schema_dict_service_detail
     )
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
@@ -90,33 +59,7 @@ class CategoryImageViewSet(ServiceParentViewSet):
         operation_description=(
             'Список категорий постеров сервиса '
         ),
-        responses={
-            status.HTTP_200_OK: openapi.Schema(
-                type=openapi.TYPE_OBJECT,
-                properties={
-                    'data': openapi.Schema(
-                        type=openapi.TYPE_ARRAY,
-                        items=openapi.Items(
-                            type=openapi.TYPE_OBJECT,
-                            properties={
-                                'id': openapi.Schema(
-                                 type=openapi.TYPE_STRING
-                                ),
-                                'name': openapi.Schema(
-                                    type=openapi.TYPE_STRING
-                                ),
-                            }
-                        )
-                    ),
-                    'next': openapi.Schema(
-                        type=openapi.TYPE_STRING
-                    ),
-                    'previous': openapi.Schema(
-                        type=openapi.TYPE_STRING
-                    )
-                }
-            )
-        }
+        responses=response_schema_dict_image_categories_list
     )
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
@@ -140,36 +83,7 @@ class ServiceCategoryImageViewSet(ServiceParentViewSet):
         operation_description=(
             'Список изображений в категории '
         ),
-        responses={
-            status.HTTP_201_CREATED: openapi.Schema(
-                type=openapi.TYPE_OBJECT,
-                properties={
-                    'data': openapi.Schema(
-                        type=openapi.TYPE_ARRAY,
-                        items=openapi.Items(
-                            type=openapi.TYPE_OBJECT,
-                            properties={
-                                'id': openapi.Schema(
-                                 type=openapi.TYPE_STRING
-                                ),
-                                'title': openapi.Schema(
-                                 type=openapi.TYPE_STRING
-                                ),
-                                'image': openapi.Schema(
-                                    type=openapi.TYPE_STRING
-                                )
-                            }
-                        )
-                    ),
-                    'next': openapi.Schema(
-                        type=openapi.TYPE_STRING
-                    ),
-                    'previous': openapi.Schema(
-                        type=openapi.TYPE_STRING
-                    )
-                }
-            )
-        }
+        responses=response_schema_dict_service_image_categories_list
     )
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
@@ -189,36 +103,7 @@ class PopularServiceViewSet(ServiceParentViewSet):
         operation_description=(
             'Список сервисов в порядке убывания популярности '
         ),
-        responses={
-            status.HTTP_201_CREATED: openapi.Schema(
-                type=openapi.TYPE_OBJECT,
-                properties={
-                    'data': openapi.Schema(
-                        type=openapi.TYPE_ARRAY,
-                        items=openapi.Items(
-                            type=openapi.TYPE_OBJECT,
-                            properties={
-                                'id': openapi.Schema(
-                                 type=openapi.TYPE_STRING
-                                ),
-                                'logo': openapi.Schema(
-                                 type=openapi.TYPE_STRING
-                                ),
-                                'cashback': openapi.Schema(
-                                    type=openapi.TYPE_INTEGER
-                                )
-                            }
-                        )
-                    ),
-                    'next': openapi.Schema(
-                        type=openapi.TYPE_STRING
-                    ),
-                    'previous': openapi.Schema(
-                        type=openapi.TYPE_STRING
-                    )
-                }
-            )
-        }
+        responses=response_schema_dict_popular_services_list
     )
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
@@ -243,102 +128,16 @@ class TariffViewSet(RetrieveModelMixin, ServiceParentViewSet):
         operation_description=(
             'Список тарифов сервиса '
         ),
-        responses={
-            status.HTTP_201_CREATED: openapi.Schema(
-                type=openapi.TYPE_OBJECT,
-                properties={
-                    'data': openapi.Schema(
-                        type=openapi.TYPE_ARRAY,
-                        items=openapi.Items(
-                            type=openapi.TYPE_OBJECT,
-                            properties={
-                                'id': openapi.Schema(
-                                 type=openapi.TYPE_STRING
-                                ),
-                                'name': openapi.Schema(
-                                 type=openapi.TYPE_STRING
-                                ),
-                                'descrition': openapi.Schema(
-                                    type=openapi.TYPE_STRING
-                                )
-                            }
-                        )
-                    ),
-                    'next': openapi.Schema(
-                        type=openapi.TYPE_STRING
-                    ),
-                    'previous': openapi.Schema(
-                        type=openapi.TYPE_STRING
-                    )
-                }
-            )
-        }
+        responses=response_schema_dict_tariffs_list
     )
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
     @swagger_auto_schema(
         operation_description=(
-            'Подробная информация о тарифе сервиса '
+            'Подробная информация о тарифе сервиса. '
         ),
-        responses={
-            status.HTTP_200_OK: openapi.Schema(
-                type=openapi.TYPE_OBJECT,
-                properties={
-                    'id': openapi.Schema(
-                        type=openapi.TYPE_STRING
-                    ),
-                    'name': openapi.Schema(
-                        type=openapi.TYPE_STRING
-                    ),
-                    'decsription': openapi.Schema(
-                        type=openapi.TYPE_STRING
-                    ),
-                    'condition': openapi.Schema(
-                        type=openapi.TYPE_OBJECT,
-                        properties={
-                            'count': openapi.Schema(
-                                type=openapi.TYPE_INTEGER
-                            ),
-                            'period': openapi.Schema(
-                                type=openapi.TYPE_STRING
-                            ),
-                            'price': openapi.Schema(
-                                type=openapi.TYPE_INTEGER
-                            )
-                        }
-                    ),
-                    'special_condition': openapi.Schema(
-                        type=openapi.TYPE_OBJECT,
-                        properties={
-                            'count': openapi.Schema(
-                                type=openapi.TYPE_INTEGER
-                            ),
-                            'period': openapi.Schema(
-                                type=openapi.TYPE_STRING
-                            ),
-                            'price': openapi.Schema(
-                                type=openapi.TYPE_INTEGER
-                            )
-                        }
-                    ),
-                    'trial_period': openapi.Schema(
-                        type=openapi.TYPE_OBJECT,
-                        properties={
-                            'count': openapi.Schema(
-                                type=openapi.TYPE_INTEGER
-                            ),
-                            'period': openapi.Schema(
-                                type=openapi.TYPE_STRING
-                            ),
-                            'price': openapi.Schema(
-                                type=openapi.TYPE_INTEGER
-                            )
-                        }
-                    ),
-                }
-            )
-        }
+        responses=response_schema_dict_tariff_detail
     )
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)

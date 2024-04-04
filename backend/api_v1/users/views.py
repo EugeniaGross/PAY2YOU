@@ -16,6 +16,7 @@ from users.models import UserService
 from ..filters import UserServiceDateFilter, UserServiceFilter
 from ..mixins import UpdateModelMixin
 from ..pagination import ServicePagination
+from ..permissions import IsAuthorOrReadOnly
 from .serializers import (CustomTokenObtainPairSerializer,
                           ExpensesByCategorySerializer, ExpensesSerializer,
                           UserHistoryPaymentSerializer,
@@ -53,7 +54,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
             )
         }
     )
-    def post(self, request: Request, *args, **kwargs) -> mixins.Response:
+    def post(self, request: Request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
 
 
@@ -67,6 +68,7 @@ class UserServiceViewSet(
     pagination_class = ServicePagination
     filter_backends = (DjangoFilterBackend, )
     filterset_class = UserServiceFilter
+    permission_classes = (IsAuthorOrReadOnly, )
 
     def get_queryset(self):
         return UserService.objects.filter(

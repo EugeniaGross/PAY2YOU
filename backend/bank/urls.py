@@ -1,8 +1,10 @@
 from django.urls import path
 
-from .views import create_payment, get_cashback
+from .views import CashbackViewSet, PaymentViewSet
+
+app_name = 'bank'
 
 urlpatterns = [
-    path('payment/', create_payment, name='payment'),
-    path('cashback_accrual', get_cashback, name='cashback_accrual')
+    path('payment/', PaymentViewSet.as_view({'post': 'create'}), name='payment'),
+    path('cashback_accrual/', CashbackViewSet.as_view({'post': 'create'}), name='cashback_accrual')
 ]
