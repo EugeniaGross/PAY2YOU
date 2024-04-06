@@ -4,7 +4,7 @@ Pay2you API - это MVP API для мобильного приложения Pa
 # Запуск проекта через docker compose на локальной машине
 1. Склонировать проект на свой компьютер
    ```
-   git clone git@github.com:EugeniaGross/foodgram-project-react.git
+   git clone git@github.com:EugeniaGross/PAY2YOU.git
    ```
 2. В папке foodgram_backend создать .env со следующими данными
    ```
