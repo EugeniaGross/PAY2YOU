@@ -38,4 +38,5 @@ Pay2you API - это MVP API для мобильного приложения Pa
 # Технологии
 Django, Django REST Framework, Celery, Redis, Gunicorn, Nginx, Docker, Docker compose
 # Автор бэкенда
-[Евгения Гросс!](https://github.com/EugeniaGross/ 'Ссылка на GitHub') и Алексей Тихомиров <https://github.com/sorath2><br>
+[Евгения Гросс](https://github.com/EugeniaGross/ 'Ссылка на GitHub') - приложения services, users, bank; периодические задачи; views, serializers, endpoint, permissions, filters, mixins для API services и users, кроме расходов пользователя по категориям, расходов пользователя и предстоящих расходов пользователя, документация для services, unittest для api_v1/services, деплой на сервер.<br>
+[Алексей Тихомиров](<https://github.com/sorath2> 'Ссылка на GitHub') - views, serializers, endpoint для расходов пользователя по категориям, расходов пользователя и предстоящих расходов пользователя, документация для users, unittest для api_v1/users, Dockerfile и .dockerignore для backend и nginx, docker-compose.yml, docker-compose.production.yml
