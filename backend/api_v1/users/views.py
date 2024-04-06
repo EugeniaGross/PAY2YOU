@@ -4,6 +4,7 @@ from datetime import date
 from django.db.models import F, Sum
 from django.http import JsonResponse
 from django_filters.rest_framework import DjangoFilterBackend
+from djoser.views import UserViewSet
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import filters, mixins, status, viewsets
@@ -24,6 +25,31 @@ from .serializers import (CustomTokenObtainPairSerializer,
                           UserServiceListSerializer,
                           UserServiceRetrieveSerializer,
                           UserServiceUpdateSerialiser)
+
+
+class CustomUserViewSet(UserViewSet):
+    @swagger_auto_schema(
+        operation_description=(
+            'Регистрация пользователя по адресу электроной '
+            'почты и паролю.'
+        ),
+        responses={
+            status.HTTP_201_CREATED: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'id': openapi.Schema(
+                        type=openapi.TYPE_STRING
+                    ),
+                    'email': openapi.Schema(
+                        type=openapi.TYPE_STRING
+                    ),
+                }
+            ),
+            status.HTTP_400_BAD_REQUEST: "BAD REQUEST"
+        }
+    )
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):

@@ -2,9 +2,9 @@ from datetime import datetime, timedelta
 from re import search
 
 from django.contrib.auth.models import update_last_login
-from rest_framework.reverse import reverse
 from requests import post
 from rest_framework import serializers
+from rest_framework.reverse import reverse
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.settings import api_settings
 
@@ -265,7 +265,7 @@ class UserServiceUpdateSerialiser(serializers.ModelSerializer):
                     user=self.context['request'].user,
                     tariff=instance.tariff
             ).exists():
-                price = validated_data['tariff'].tariff_special_condition.price
+                price = instance.tariff.tariff_special_condition.price
                 response = post(
                     url,
                     data={
@@ -282,7 +282,7 @@ class UserServiceUpdateSerialiser(serializers.ModelSerializer):
                     user=instance.user,
                     phone_number=instance.phone_number
                 )
-            price = validated_data['tariff'].tariff_condition.price
+            price = instance.tariff.tariff_condition.price
             response = post(
                 url,
                 data={

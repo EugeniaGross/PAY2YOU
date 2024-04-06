@@ -1,7 +1,5 @@
 from datetime import datetime
 
-from django.conf import settings
-from django.urls import reverse
 from requests import post
 
 from api_v1.exeptions import CashbackError, PaymentError
@@ -10,12 +8,7 @@ from backend.celery import app
 from services.models import TariffSpecialCondition
 
 from .models import UserService, UserTrialPeriod
-
-
-def get_full_url(path):
-    if settings.DEBUG:
-        return f'http://127.0.0.1:8000/{path}'
-    return f'{settings.SITE_URL}{path}'
+from .utils import get_full_url
 
 
 @app.task
@@ -99,4 +92,3 @@ def create_autopay():
                     user=subscription.user,
                     phone_number=subscription.phone_number
                 )
-    return url

@@ -1,15 +1,17 @@
-version: '3.3'
+version: '3'
 volumes:
+  pg_data:
   media:
   static:
 services:
+
   db:
-    container_name: PAY2YOU_postgres_db
     image: postgres:13.10
     env_file: .env
-  
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
   redis:
-    container_name: PAY2YOU_redis
     image: redis:latest
     restart: always
     ports:
@@ -20,19 +22,28 @@ services:
     env_file: .env
 
   backend:
-    container_name: PAY2YOU_backend
-    build: ./backend/
+    image: euggross/pay2you_backend
     env_file: .env
     depends_on:
       - db
     volumes:
       - media:/app/media/
-      - static:/app/static/
+      - static:/backend_static/
 
   celery_beat:
-    container_name: PAY2YOU_celery_beat
-    build: ./backend
+    image: euggross/pay2you_backend
     command: celery -A backend beat --loglevel=info
+    volumes:
+      - ./backend:/usr/src/app
+    env_file: .env
+    depends_on:
+      - backend
+      - celery_worker
+      - redis
+
+  celery_worker:
+    image: euggross/pay2you_backend
+    command: celery -A backend worker --loglevel=info
     volumes:
       - ./backend:/usr/src/app
     env_file: .env
@@ -40,25 +51,12 @@ services:
       - backend
       - redis
 
-  celery_worker:
-    container_name: PAY2YOU_celery_worker
-    build: ./backend
-    command: celery -A backend worker --loglevel=info
-    volumes:
-      - ./backend:/usr/src/app
-    env_file: .env
-    depends_on:
-      - backend
-      - redis    
- 
   nginx:
-    container_name: PAY2YOU_nginx
-    image: nginx:1.22.1
+    image: euggross/pay2you_nginx
     ports:
       - 8000:80
     depends_on:
      - backend
     volumes:
-      - media:/app/media/
-      - static:/app/static/
-      - ./infra/nginx.conf:/etc/nginx/conf.d/default.conf
+      - media:/media/
+      - static:/static/

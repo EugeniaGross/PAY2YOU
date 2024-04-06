@@ -7,7 +7,13 @@ from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 from services.models import Service
 
 from ..pagination import ServicePagination
-from ..response_shema import response_schema_dict_tariff_detail, response_schema_dict_image_categories_list,response_schema_dict_popular_services_list,response_schema_dict_service_detail,response_schema_dict_service_image_categories_list,response_schema_dict_services_list,response_schema_dict_tariffs_list
+from ..response_shema import (
+    response_schema_dict_image_categories_list,
+    response_schema_dict_popular_services_list,
+    response_schema_dict_service_detail,
+    response_schema_dict_service_image_categories_list,
+    response_schema_dict_services_list, response_schema_dict_tariff_detail,
+    response_schema_dict_tariffs_list)
 from .serializers import (CategoryImageSerializer, PopularServiceSerialiser,
                           ServiceCategoryImageSerializer,
                           ServiceListSerializer, ServiceRetrieveSerializer,

@@ -16,6 +16,6 @@ app.conf.beat_schedule = {
     },
     'autopay_every_day': {
         'task': 'users.tasks.create_autopay',
-        'schedule': crontab(),
+        'schedule': crontab(minute=0, hour=0),
     }
 }

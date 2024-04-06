@@ -1,5 +1,6 @@
 from drf_yasg import openapi
-from rest_framework import status
+
+from users.utils import get_full_url
 
 response_schema_dict_service_detail = {
     "200": openapi.Response(
@@ -11,7 +12,7 @@ response_schema_dict_service_detail = {
                 "full_name": "Okko: фильмы",
                 "short_description": "Фильмы и сериалы",
                 "cashback": 5,
-                "logo": "https://www.example.com/media/123.jpg",
+                "logo": f"{get_full_url()}media/123.jpg",
                 "description": "Большое количество фильмов",
                 "url": "https://okko.tv/"
             }
@@ -32,13 +33,13 @@ response_schema_dict_services_list = {
                 "data": [
                     {
                         "id": "61f0c404-5cb3-11e7-907b-a6006ad3dba0",
-                        "logo": "https://www.example.com/123.jpg",
+                        "logo": f"{get_full_url()}123.jpg",
                         "name": "Okko",
                         "cashback": 5
                     }
                 ],
-                "next": "https://www.example.com/services/?skip=5&top=0",
-                "previous": "https://www.example.com/services/?skip=5&top=6"
+                "next": f"{get_full_url()}services/?skip=5&top=0",
+                "previous": f"{get_full_url()}services/?skip=5&top=6"
             }
         }
     ),
@@ -57,10 +58,10 @@ response_schema_dict_image_categories_list = {
                         "name": "Популярные"
                     }
                 ],
-                "next": ("https://www.example.com/services/"
+                "next": (f"{get_full_url()}services/"
                          "61f0c404-5cb3-11e7-907b-a6006ad3dba0/"
                          "image-categories/?skip=5&top=0"),
-                "previous": ("https://www.example.com/services/"
+                "previous": (f"{get_full_url()}services/"
                              "61f0c404-5cb3-11e7-907b-a6006ad3dba0/"
                              "image-categories/?skip=5&top=6")
             }
@@ -82,15 +83,17 @@ response_schema_dict_service_image_categories_list = {
                     {
                         "id": "61f0c404-5cb3-11e7-907b-a6006ad3dba0",
                         "title": "Популярные",
-                        "image": "https://www.example.com/madia/23.jpg"
+                        "image": f"{get_full_url()}madia/23.jpg"
                     }
                 ],
-                "next": ("https://www.example.com/services/"
+                "next": (f"{get_full_url()}services/"
                          "61f0c404-5cb3-11e7-907b-a6006ad3dba0/"
-                         "image-categories/71f0c404-5cb3-11e7-907b-a6006ad3dba0/"
+                         "image-categories/"
+                         "71f0c404-5cb3-11e7-907b-a6006ad3dba0/"
                          "images/?skip=5&top=0"),
-                "previous": ("https://www.example.com/services/"
-                             "61f0c404-5cb3-11e7-907b-a6006ad3dba0/image-categories/"
+                "previous": (f"{get_full_url()}services/"
+                             "61f0c404-5cb3-11e7-907b-a6006ad3dba0/"
+                             "image-categories/"
                              "71f0c404-5cb3-11e7-907b-a6006ad3dba0/"
                              "images/?skip=5&top=6")
             }
@@ -111,13 +114,13 @@ response_schema_dict_popular_services_list = {
                 "data": [
                     {
                         "id": "61f0c404-5cb3-11e7-907b-a6006ad3dba0",
-                        "logo": "https://www.example.com/123.jpg",
+                        "logo": f"{get_full_url()}123.jpg",
                         "cashback": 5
                     }
                 ],
-                "next": ("https://www.example.com/"
+                "next": (f"{get_full_url()}"
                          "popular-services/?skip=5&top=0"),
-                "previous": ("https://www.example.com/popular-services/"
+                "previous": (f"{get_full_url()}popular-services/"
                              "?skip=5&top=6")
             }
         }
@@ -138,10 +141,10 @@ response_schema_dict_tariffs_list = {
                         "description": "5000 фильмов и сериалов"
                     }
                 ],
-                "next": ("https://www.example.com/services/"
+                "next": (f"{get_full_url()}services/"
                          "61f0c404-5cb3-11e7-907b-a6006ad3dba0/"
                          "tariffs/?skip=5&top=0"),
-                "previous": ("https://www.example.com/services/"
+                "previous": (f"{get_full_url()}services/"
                              "61f0c404-5cb3-11e7-907b-a6006ad3dba0/"
                              "tariffs/?skip=5&top=6")
             }
@@ -181,12 +184,13 @@ response_schema_dict_tariff_detail = {
                         }
                     }
                 ],
-                "next": ("https://www.example.com/services/"
+                "next": (f"{get_full_url()}services/"
                          "61f0c404-5cb3-11e7-907b-a6006ad3dba0/tariffs/"
                          "61f0c404-5cb3-11e7-907b-a6006ad3dba0/?skip=5&top=0"),
-                "previous": ("https://www.example.com/services/"
+                "previous": (f"{get_full_url()}services/"
                              "61f0c404-5cb3-11e7-907b-a6006ad3dba0/tariffs/"
-                             "61f0c404-5cb3-11e7-907b-a6006ad3dba0/?skip=5&top=6")
+                             "61f0c404-5cb3-11e7-907b-a6006ad3dba0/"
+                             "?skip=5&top=6")
             }
         }
     ),

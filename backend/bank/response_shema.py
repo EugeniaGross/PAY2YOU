@@ -1,5 +1,4 @@
 from drf_yasg import openapi
-from rest_framework import status
 
 response_schema_dict = {
     "200": openapi.Response(

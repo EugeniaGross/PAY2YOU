@@ -1,6 +1,5 @@
 from django.conf.urls import url
 from django.urls import include, path
-from djoser.views import UserViewSet
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
@@ -10,9 +9,9 @@ from .services.views import (CategoryImageViewSet, PopularServiceViewSet,
                              ServiceCategoryImageViewSet, SevicesViewSet,
                              TariffViewSet)
 from .users.views import (CashbackViewSet, CustomTokenObtainPairView,
-                          ExpensesByCategoryViewSet, ExpensesViewSet,
-                          FutureExpensesViewSet, UserHistoryPaymentViewSet,
-                          UserServiceViewSet)
+                          CustomUserViewSet, ExpensesByCategoryViewSet,
+                          ExpensesViewSet, FutureExpensesViewSet,
+                          UserHistoryPaymentViewSet, UserServiceViewSet)
 
 router = SimpleRouter()
 
@@ -81,7 +80,7 @@ urlpatterns = [
     ),
     path(
         'registration/',
-        UserViewSet.as_view({'post': 'create'}),
+        CustomUserViewSet.as_view({'post': 'create'}),
         name='users'
     ),
     path(
