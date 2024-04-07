@@ -1,6 +1,6 @@
 from calendar import monthrange
-from datetime import date
 from collections import Counter
+from datetime import date
 
 from django.db.models import F, Sum
 from django.db.models.functions import Coalesce
@@ -13,6 +13,7 @@ from rest_framework import filters, mixins, status, viewsets
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
+
 from users.models import UserService
 
 from ..filters import UserServiceDateFilter, UserServiceFilter

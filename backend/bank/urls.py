@@ -1,18 +1,18 @@
 from django.urls import path
 
-from .views import CashbackViewSet, PaymentViewSet
+from .views import cashback_accrual, payment
 
 app_name = 'bank'
 
 urlpatterns = [
     path(
         'payment/',
-        PaymentViewSet.as_view({'post': 'create'}),
+        payment,
         name='payment'
     ),
     path(
         'cashback_accrual/',
-        CashbackViewSet.as_view({'post': 'create'}),
+        cashback_accrual,
         name='cashback_accrual'
     )
 ]

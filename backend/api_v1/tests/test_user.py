@@ -1,18 +1,17 @@
-from datetime import datetime as dt
 from calendar import monthrange
-from datetime import date, timedelta
+from datetime import date
+from datetime import datetime as dt
+from datetime import timedelta
 
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APITestCase
-from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.test import APIClient, APITestCase
+from rest_framework_simplejwt.tokens import RefreshToken
 
-from services.models import (CategoryService, Service, TariffTrialPeriod, TariffSpecialCondition,
-                             Tariff, TariffCondition)
-
-from users.models import UserService, UserTrialPeriod, UserSpecialCondition
+from services.models import (CategoryService, Service, Tariff, TariffCondition,
+                             TariffSpecialCondition, TariffTrialPeriod)
+from users.models import UserService, UserSpecialCondition, UserTrialPeriod
 
 User = get_user_model()
 

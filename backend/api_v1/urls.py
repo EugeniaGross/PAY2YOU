@@ -5,6 +5,8 @@ from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 from rest_framework.routers import SimpleRouter
 
+from users.utils import get_full_url
+
 from .services.views import (CategoryImageViewSet, PopularServiceViewSet,
                              ServiceCategoryImageViewSet, SevicesViewSet,
                              TariffViewSet)
@@ -12,7 +14,6 @@ from .users.views import (CashbackViewSet, CustomTokenObtainPairView,
                           CustomUserViewSet, ExpensesByCategoryViewSet,
                           ExpensesViewSet, FutureExpensesViewSet,
                           UserHistoryPaymentViewSet, UserServiceViewSet)
-from users.utils import get_full_url
 
 router = SimpleRouter()
 

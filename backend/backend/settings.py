@@ -7,10 +7,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv(
     'SECRET_KEY', 'django-insecure-y1^-=5uq!t42=g=^64et45^ux--4*f&#06v!*0epow$u2bkp@7')
 
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ['pay2you.sytes.net',
-                 '51.250.109.90', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['pay2you.sytes.net', '51.250.109.90', 'localhost', '127.0.0.1']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -64,13 +63,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'backend.wsgi.application'
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
 
 DATABASES = {
     'default': {
@@ -141,7 +133,7 @@ SWAGGER_SETTINGS = {
             'name': 'Authorization',
             'in': 'header'
         }
-    }
+    },
    'DEFAULT_API_URL': 'https://pay2you.sytes.net/'
 }
 
