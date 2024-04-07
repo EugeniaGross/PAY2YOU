@@ -12,6 +12,7 @@ from .users.views import (CashbackViewSet, CustomTokenObtainPairView,
                           CustomUserViewSet, ExpensesByCategoryViewSet,
                           ExpensesViewSet, FutureExpensesViewSet,
                           UserHistoryPaymentViewSet, UserServiceViewSet)
+from users.utils import get_full_url
 
 router = SimpleRouter()
 

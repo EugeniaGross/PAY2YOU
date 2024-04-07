@@ -10,6 +10,7 @@ from rest_framework_simplejwt.settings import api_settings
 
 from services.models import TariffSpecialCondition, TariffTrialPeriod
 from users.models import UserService, UserSpecialCondition, UserTrialPeriod
+from users.utils import get_full_url
 
 from ..exeptions import PaymentError
 from ..utils import (connect_special_condition, create_subscribe, get_days,
@@ -145,7 +146,7 @@ class UserServiceCreateSerialiser(serializers.ModelSerializer):
         return super().validate(attrs)
 
     def create(self, validated_data):
-        url = reverse('bank:payment', request=self.context['request'])
+        url = get_full_url('payment/')
         if (TariffTrialPeriod.objects.filter(
                 tariff=validated_data['tariff']
             ).exists()
@@ -257,7 +258,7 @@ class UserServiceUpdateSerialiser(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         if instance.end_date < datetime.now().date()\
            and validated_data['auto_pay']:
-            url = reverse('bank:payment', request=self.context['request'])
+            url = get_full_url('payment/')
             if TariffSpecialCondition.objects.filter(
                 tariff=instance.tariff
             ).exists()\

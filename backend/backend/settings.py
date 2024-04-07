@@ -108,8 +108,6 @@ USE_L10N = True
 
 USE_TZ = True
 
-SITE_URL = 'http://pay2you.sytes.net/'
-
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'static'
 
@@ -144,6 +142,7 @@ SWAGGER_SETTINGS = {
             'in': 'header'
         }
     }
+   'DEFAULT_API_URL': 'https://pay2you.sytes.net/'
 }
 
 CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379')
