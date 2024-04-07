@@ -1,7 +1,9 @@
 from calendar import monthrange
 from datetime import date
+from collections import Counter
 
 from django.db.models import F, Sum
+from django.db.models.functions import Coalesce
 from django.http import JsonResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
@@ -11,7 +13,6 @@ from rest_framework import filters, mixins, status, viewsets
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
-
 from users.models import UserService
 
 from ..filters import UserServiceDateFilter, UserServiceFilter
@@ -441,9 +442,8 @@ class FutureExpensesViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
             is_active=1,
             auto_pay=1,
             end_date__gt=date.today(),
-            end_date__lt=last_current_month_date,
+            end_date__lte=last_current_month_date,
         )
-
         return queryset
 
     @swagger_auto_schema(
@@ -465,23 +465,23 @@ class FutureExpensesViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         }
     )
     def list(self, request, *args, **kwargs):
-        expense = {}
         queryset = self.get_queryset()
         special_condition_expense = queryset.filter(
             tariff__tariff_trial_period__tariff_id=F('tariff'),
             service__trial_period__end_date=F('end_date'),
             tariff__tariff_special_condition__tariff_id=F('tariff'),
         )
-        non_special_condition_expense = queryset.difference(
-            special_condition_expense)
+        non_special_condition_expense = queryset.exclude(
+            tariff__tariff_trial_period__tariff_id=F('tariff'),
+            service__trial_period__end_date=F('end_date'),
+            tariff__tariff_special_condition__tariff_id=F('tariff'),
+        )
 
         expense = special_condition_expense.aggregate(
-            future_expenses=Sum('tariff__tariff_special_condition__price'))
-        for value in non_special_condition_expense.values(
-            'tariff__tariff_condition__price'
-        ):
-            expense['future_expenses'] = expense.get(
-                'future_expenses', 0) + list(value.values())[0]
+            future_expenses=Coalesce(Sum('tariff__tariff_special_condition__price'), 0))
+        expense2 = non_special_condition_expense.aggregate(
+            future_expenses=Coalesce(Sum('tariff__tariff_condition__price'), 0))
+        expense = dict(Counter(expense) + Counter(expense2))
 
         return JsonResponse(expense)
 
