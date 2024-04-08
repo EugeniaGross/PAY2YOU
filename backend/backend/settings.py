@@ -7,7 +7,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv(
     'SECRET_KEY', 'django-insecure-y1^-=5uq!t42=g=^64et45^ux--4*f&#06v!*0epow$u2bkp@7')
 
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['pay2you.sytes.net', '51.250.109.90', 'localhost', '127.0.0.1']
 
